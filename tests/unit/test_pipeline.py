@@ -1,11 +1,11 @@
 # tests/unit/test_pipeline.py
-from pathlib import Path
 import types
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
 import pytest
 
 from materia_epd.epd import pipeline as pl
-
 
 # ------------------------------ gen_xml_objects ------------------------------
 
@@ -129,23 +129,26 @@ def test_gen_locfiltered_epds_raises_when_not_found(monkeypatch):
 
 def test_epd_pipeline_happy_path(monkeypatch, tmp_path: Path):
     process = types.SimpleNamespace(
-        matches={"uuids": ["u1"]},
+        uuid="u0",
+        dec_unit="dummy-unit",
+        matches={"uuids": ["a", "b"]},
         material_kwargs={"mass": 1.0},
         market={"FR": 0.7, "DE": 0.3},
     )
 
     class EPD:
-        def __init__(self, name):
-            self.name = name
+        def __init__(self, uuid):
+            self.uuid = uuid
             self.lcia_results = {"GWP": 1}
 
         def get_lcia_results(self):
             self.lcia_results = {"GWP": 2}
 
-    monkeypatch.setattr(
-        pl, "gen_epds", lambda folder: [EPD("a"), EPD("b")], raising=True
-    )
-
+    epds = {"a": EPD("a"), "b": EPD("b")}
+    # epds = [EPD("a"), EPD("b")]
+    # monkeypatch.setattr(
+    # 	pl, "pre_filtered_epds", lambda epds: [v for k, v in epds], raising=True
+    # )
     monkeypatch.setattr(pl, "UUIDFilter", lambda m: ("UUIDFilter", m), raising=True)
     monkeypatch.setattr(
         pl, "UnitConformityFilter", lambda kw: ("UnitFilter", kw), raising=True
@@ -190,7 +193,7 @@ def test_epd_pipeline_happy_path(monkeypatch, tmp_path: Path):
         raising=True,
     )
 
-    avg_props, avg_gwps = pl.epd_pipeline(process, tmp_path)
+    avg_props, avg_gwps = pl.epd_pipeline(process, epds)
 
     assert avg_props == {"mass": 2.0}
     assert avg_gwps == {"GWP": 2.0}
@@ -252,16 +255,22 @@ def test_run_materia_executes_pipeline_and_writes(monkeypatch, tmp_path: Path):
     epd_return_avg_props = {"mass": 42.0}
     epd_return_avg_gwps = {"GWP": 3.5}
 
-    def fake_epd_pipeline(process, path_to_epd_folder):
-        assert path_to_epd_folder == epd_dir / "processes"
+    def fake_epd_pipeline(process, epds):
+        # assert path_to_epd_folder == epd_dir / "processes"
         return epd_return_avg_props, epd_return_avg_gwps
 
     monkeypatch.setattr(pl, "epd_pipeline", fake_epd_pipeline, raising=True)
+
+    def fake_gen_epd(path_to_epd_folder):
+        assert path_to_epd_folder == epd_dir / "processes"
+        for root, path in [("dummy-root", "dummy-path")]:
+            yield FakeIlcd(root, path)
+
+    monkeypatch.setattr(pl, "gen_epds", fake_gen_epd, raising=True)
 
     class FakeMaterial:
         def __init__(self, **kw):
             self.kw = kw
 
     monkeypatch.setattr(pl, "Material", FakeMaterial, raising=True)
-
     pl.run_materia(prod_dir, epd_dir, out_dir)

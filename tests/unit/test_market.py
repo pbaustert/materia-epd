@@ -8,19 +8,19 @@ import materia_epd.market.market as tm
 
 def test_fetch_trade_data_success(monkeypatch):
     df = pd.DataFrame({"x": [1]})
-    with patch(
-        "materia_epd.market.market.get_comtrade_api_key", return_value="KEY"
-    ), patch(
-        "materia_epd.market.market.get_location_data", return_value={"comtradeID": 442}
-    ), patch(
-        "materia_epd.market.market.C.TRADE_YEARS", ["2020", "2021"]
-    ), patch(
-        "materia_epd.market.market.C.TRADE_FLOW", "M"
-    ), patch(
-        "materia_epd.market.market.comtradeapicall.getFinalData", return_value=df
-    ) as mget, patch(
-        "materia_epd.market.market.time.sleep"
-    ) as msleep:
+    with (
+        patch("materia_epd.market.market.get_comtrade_api_key", return_value="KEY"),
+        patch(
+            "materia_epd.market.market.get_location_data",
+            return_value={"comtradeID": 442},
+        ),
+        patch("materia_epd.market.market.C.TRADE_YEARS", ["2020", "2021"]),
+        patch("materia_epd.market.market.C.TRADE_FLOW", "M"),
+        patch(
+            "materia_epd.market.market.comtradeapicall.getFinalData", return_value=df
+        ) as mget,
+        patch("materia_epd.market.market.time.sleep") as msleep,
+    ):
         out = tm.fetch_trade_data_for_hs_code("LU", "0101")
         assert isinstance(out, pd.DataFrame) and not out.empty
         mget.assert_called_once()
@@ -28,19 +28,19 @@ def test_fetch_trade_data_success(monkeypatch):
 
 
 def test_fetch_trade_data_no_data(monkeypatch, capsys):
-    with patch(
-        "materia_epd.market.market.get_comtrade_api_key", return_value="KEY"
-    ), patch(
-        "materia_epd.market.market.get_location_data", return_value={"comtradeID": 442}
-    ), patch(
-        "materia_epd.market.market.C.TRADE_YEARS", ["2020"]
-    ), patch(
-        "materia_epd.market.market.C.TRADE_FLOW", "M"
-    ), patch(
-        "materia_epd.market.market.comtradeapicall.getFinalData",
-        return_value=pd.DataFrame(),
-    ), patch(
-        "materia_epd.market.market.time.sleep"
+    with (
+        patch("materia_epd.market.market.get_comtrade_api_key", return_value="KEY"),
+        patch(
+            "materia_epd.market.market.get_location_data",
+            return_value={"comtradeID": 442},
+        ),
+        patch("materia_epd.market.market.C.TRADE_YEARS", ["2020"]),
+        patch("materia_epd.market.market.C.TRADE_FLOW", "M"),
+        patch(
+            "materia_epd.market.market.comtradeapicall.getFinalData",
+            return_value=pd.DataFrame(),
+        ),
+        patch("materia_epd.market.market.time.sleep"),
     ):
         out = tm.fetch_trade_data_for_hs_code("LU", "0101")
         assert out is None
@@ -48,19 +48,19 @@ def test_fetch_trade_data_no_data(monkeypatch, capsys):
 
 
 def test_fetch_trade_data_exception(capsys):
-    with patch(
-        "materia_epd.market.market.get_comtrade_api_key", return_value="KEY"
-    ), patch(
-        "materia_epd.market.market.get_location_data", return_value={"comtradeID": 442}
-    ), patch(
-        "materia_epd.market.market.C.TRADE_YEARS", ["2020"]
-    ), patch(
-        "materia_epd.market.market.C.TRADE_FLOW", "M"
-    ), patch(
-        "materia_epd.market.market.comtradeapicall.getFinalData",
-        side_effect=RuntimeError("boom"),
-    ), patch(
-        "materia_epd.market.market.time.sleep"
+    with (
+        patch("materia_epd.market.market.get_comtrade_api_key", return_value="KEY"),
+        patch(
+            "materia_epd.market.market.get_location_data",
+            return_value={"comtradeID": 442},
+        ),
+        patch("materia_epd.market.market.C.TRADE_YEARS", ["2020"]),
+        patch("materia_epd.market.market.C.TRADE_FLOW", "M"),
+        patch(
+            "materia_epd.market.market.comtradeapicall.getFinalData",
+            side_effect=RuntimeError("boom"),
+        ),
+        patch("materia_epd.market.market.time.sleep"),
     ):
         out = tm.fetch_trade_data_for_hs_code("LU", "0101")
         assert out is None

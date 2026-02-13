@@ -1,24 +1,27 @@
+import logging
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
+import structlog
 
 from materia_epd.core.constants import (
-    NAME_TO_IDX,
-    IDX_TO_NAME,
-    REL,
-    VARS,
-    QUANTITIES,
+    _REL_DEC,
     _TOL_ABS,
     _TOL_REL,
-    _REL_DEC,
     ACCEPTED_RESCALINGS,
-    REASONABLE_RANGES,
-    POTENTIAL_CORRECTIONS,
     ICONS,
+    IDX_TO_NAME,
+    NAME_TO_IDX,
+    POTENTIAL_CORRECTIONS,
+    QUANTITIES,
+    REASONABLE_RANGES,
+    REL,
+    VARS,
 )
 
-from materia_epd.core.utils import print_progress
+logger = structlog.wrap_logger(logging.getLogger(__name__))
 
 
 class RuleMode(str, Enum):
@@ -69,22 +72,22 @@ def check_properties_ranges(uuid: str, kwargs: Dict[str, Optional[float]]) -> No
         if value is None:
             continue
         if not (min_val <= value <= max_val):
-            print_progress(
-                uuid,
-                f"{prop} {value} is outside the expected range ({min_val}–{max_val}).",
-                ICONS.WARNING,
-                overwrite=False,
+            logger.debug(
+                f"Range warning {ICONS.WARNING}",
+                uuid=uuid,
+                message=f"{prop} {value} is outside "
+                f"the expected range ({min_val}–{max_val}).",
             )
             if prop in POTENTIAL_CORRECTIONS.keys():
                 value = value * POTENTIAL_CORRECTIONS[prop]["factor"]
                 if min_val <= value <= max_val:
                     kwargs[prop] = value
-                    print_progress(
-                        uuid,
-                        f"{prop} converted from {POTENTIAL_CORRECTIONS[prop]['from']} "
+                    logger.debug(
+                        f"Unit conversion {ICONS.WARNING}",
+                        uuid=uuid,
+                        message=f"{prop} converted "
+                        f"from {POTENTIAL_CORRECTIONS[prop]['from']} "
                         f"to {POTENTIAL_CORRECTIONS[prop]['to']}: {value}.",
-                        ICONS.WARNING,
-                        overwrite=False,
                     )
     return kwargs
 
@@ -115,7 +118,9 @@ def _rule_log_coeffs(ru: Rule) -> Dict[int, float]:
     return coeffs
 
 
-def _build_property_eq_system(adj_col: Dict[int, int]) -> tuple[np.ndarray, np.ndarray]:
+def _build_property_eq_system(
+    adj_col: Dict[int, int],
+) -> tuple[np.ndarray, np.ndarray]:
     rows: list[list[float]] = []
     for ru in RULES:
         coeffs = _rule_log_coeffs(ru)

@@ -14,7 +14,9 @@ dependencies = [
     "numpy",
     "pandas",
     "pycountry",
-    "comtradeapicall"
+    "comtradeapicall",
+    "rich>=14.3.2",
+    "structlog>=25.5.0",
 ]
 license = "MIT"
 license-files = ["LICENSE.txt"]
@@ -35,7 +37,8 @@ dev = [
     "pre-commit==3.4.0",
     "deptry",
     "coverage-badge",
-    "sphinx"
+    "sphinx",
+    "setuptools>=82.0.0",
 ]
 
 [tool.setuptools_scm]
@@ -62,3 +65,11 @@ extend_exclude = ["docs"]
 
 [tool.deptry.per_rule_ignores]
 DEP003 = ["materia_epd"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

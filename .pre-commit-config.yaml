@@ -17,6 +17,7 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: coverage\.svg
       - id: check-added-large-files
         args: ["--maxkb=1500"]
 
@@ -24,15 +25,16 @@ repos:
     hooks:
       - id: pytest-with-coverage
         name: Run Pytest with Coverage
-        entry: pytest --cov=materia --cov-report=term --cov-report=xml
+        entry: pytest --cov=materia_epd --cov-report=term --cov-report=xml
         language: system
         pass_filenames: false
         always_run: true
 
       - id: coverage-badge
         name: Generate coverage badge
-        entry: python -m coverage_badge -f -o coverage.svg
-        language: system
+        entry: genbadge coverage -i coverage.xml -o coverage.svg
+        language: python
+        additional_dependencies: [genbadge, defusedxml]
         pass_filenames: false
         always_run: true
 
@@ -41,7 +43,8 @@ repos:
       - id: build-package
         name: Build Package
         entry: python -m build
-        language: system
+        language: python
+        additional_dependencies: [build]
         pass_filenames: false
         always_run: true
 

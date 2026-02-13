@@ -1,10 +1,12 @@
 # tests/unit/test_filters.py
 
+from typing import Union
+
 from materia_epd.epd.filters import (
     EPDFilter,
-    UUIDFilter,
-    UnitConformityFilter,
     LocationFilter,
+    UnitConformityFilter,
+    UUIDFilter,
 )
 
 # --- helpers -----------------------------------------------------------------
@@ -21,15 +23,24 @@ class FakeMaterial:
             raise ValueError("cannot rescale")
 
 
+class FakeFlow:
+    def __init__(self, uuid="f-1", units="dummy-units", props="dummy-props"):
+        self.uuid = uuid
+        self.units = units
+        self.props = props
+
+
 class FakeProcess:
     def __init__(self, uuid="u-1", loc="FR", material=None):
         self.uuid = uuid
         self.loc = loc
         self.material = material or FakeMaterial()
         self.ref_flow_called = 0
+        self.ref_flow: Union[FakeFlow, None] = None
 
     def get_ref_flow(self):
         self.ref_flow_called += 1
+        self.ref_flow = FakeFlow()
         return {"dummy": True}
 
 

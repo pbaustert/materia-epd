@@ -53,3 +53,5 @@ MANIFEST
 .conda*/
 .python-version
 .materia_venv/
+.autoenv*
+*log.json

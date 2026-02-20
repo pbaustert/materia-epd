@@ -1,5 +1,15 @@
 from __future__ import annotations
+
+import logging
+
+import structlog
+
 from materia_epd.epd.models import IlcdProcess
+
+structlog.configure(
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+)
+logger = structlog.wrap_logger(logging.getLogger(__name__))
 
 
 class EPDFilter:
@@ -30,10 +40,33 @@ class UnitConformityFilter(EPDFilter):
     def matches(self, epd: IlcdProcess) -> bool:
         try:
             epd.get_ref_flow()
-            epd.material.rescale(self.target_kwargs)
-            return True
-        except ValueError:
+            logger.debug(
+                "Ref. flow identified and parsed",
+                epd_uuid=epd.uuid,
+                flow_uuid=epd.ref_flow.uuid,
+            )
+        except Exception as e:
+            logger.debug(
+                "Flow XML could not be processsed \n", epd_uuid=epd.uuid, exec_info=e
+            )
             return False
+
+        try:
+            epd.material.rescale(self.target_kwargs)
+            logger.debug(
+                "Flow rescaled correctly",
+                epd_uuid=epd.uuid,
+                flow_uuid=epd.ref_flow.uuid,
+            )
+        except Exception as e:
+            logger.debug(
+                "Flow XML could not be rescaled \n",
+                epd_uuid=epd.uuid,
+                flow_uuid=epd.ref_flow.uuid,
+                exec_info=e,
+            )
+            return False
+        return True
 
     def __repr__(self):
         return f"{self.__class__.__name__}(target={self.target_kwargs})"

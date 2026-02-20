@@ -1,8 +1,7 @@
+import os
 import re
-import sys
 from pathlib import Path
 from typing import Optional, Tuple
-import os
 
 
 def to_float(value, positive=False):
@@ -30,15 +29,6 @@ def sort_key(p: Path):
         v or tuple(),
         p.stat().st_mtime,
     )
-
-
-def print_progress(uuid: str, status: str, icon: str, overwrite=True):
-    if overwrite:
-        sys.stdout.write(f"\r{icon} {uuid}: {status}")
-        sys.stdout.flush()
-    else:
-        sys.stdout.write("\r" + " " * 80 + "\r")
-        print(f"{icon} {uuid}: {status}")
 
 
 def qn_uri(uri: str, name: str) -> str:

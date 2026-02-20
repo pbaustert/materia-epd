@@ -4,28 +4,31 @@ import os
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Union
 
 from materia_epd.core.constants import (
-    FLOW_PROPERTY_MAPPING,
-    UNIT_QUANTITY_MAPPING,
-    UNIT_PROPERTY_MAPPING,
-    ILCD_QUANTITY_LABELS,
     ATTR,
-    XP,
+    FLOW_PROPERTY_MAPPING,
+    ILCD_QUANTITY_LABELS,
     NS,
+    UNIT_PROPERTY_MAPPING,
+    UNIT_QUANTITY_MAPPING,
+    XP,
 )
-
-from materia_epd.resources import get_market_shares, get_indicator_synonyms
-from materia_epd.core.utils import to_float, qn_uri
-from materia_epd.io.files import read_json_file, write_xml_root, latest_flow_file
-from materia_epd.geo.locations import ilcd_to_iso_location
 from materia_epd.core.physics import Material, check_properties_ranges
+from materia_epd.core.utils import qn_uri, to_float
+from materia_epd.geo.locations import ilcd_to_iso_location
+from materia_epd.io.files import latest_flow_file, read_json_file, write_xml_root
 from materia_epd.metrics.normalize import normalize_module_values
+from materia_epd.resources import get_indicator_synonyms, get_market_shares
 
 
 @dataclass
 class IlcdFlow:
     root: ET.Element
+    uuid: Union[str, None] = None
+    units: Union[list, None] = None
+    props: Union[list, None] = None
 
     def __post_init__(self):
         self._get_uuid()
@@ -104,6 +107,9 @@ class IlcdFlow:
 class IlcdProcess:
     root: ET.Element
     path: Path
+    uuid: Union[str, None] = None
+    loc: Union[None, str] = None
+    ref_flow: Union[IlcdFlow, None] = None
 
     def __post_init__(self):
         self._get_uuid()
@@ -127,7 +133,12 @@ class IlcdProcess:
         flows_folder = self.path.parent.parent / "flows"
         flow_file = latest_flow_file(flows_folder, ref_flow_uuid)
 
-        self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
+        try:
+            self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
+        except Exception as e:
+            e.add_note(f"Error parsing {flow_file.name}")
+            raise e
+
         exchange_amount = to_float(
             ref_flow_exchange.findtext(XP.MEAN_AMOUNT, namespaces=NS), positive=True
         )

@@ -9,11 +9,11 @@ def test_load_json_from_package_success_and_cache():
     res.load_json_from_package.cache_clear()
 
     mock_path = MagicMock()
-    with patch("materia_epd.resources.files") as mock_files, patch(
-        "materia_epd.resources.as_file"
-    ) as mock_as_file, patch(
-        "materia_epd.resources.io_files.read_json_file"
-    ) as mock_read:
+    with (
+        patch("materia_epd.resources.files") as mock_files,
+        patch("materia_epd.resources.as_file") as mock_as_file,
+        patch("materia_epd.resources.io_files.read_json_file") as mock_read,
+    ):
         mock_files.return_value.joinpath.return_value = mock_path
         mock_as_file.return_value.__enter__.return_value = mock_path
         mock_read.return_value = {"ok": 1}
@@ -27,10 +27,10 @@ def test_load_json_from_package_error_when_none():
     res.load_json_from_package.cache_clear()
 
     mock_path = MagicMock()
-    with patch("materia_epd.resources.files") as mock_files, patch(
-        "materia_epd.resources.as_file"
-    ) as mock_as_file, patch(
-        "materia_epd.resources.io_files.read_json_file", return_value=None
+    with (
+        patch("materia_epd.resources.files") as mock_files,
+        patch("materia_epd.resources.as_file") as mock_as_file,
+        patch("materia_epd.resources.io_files.read_json_file", return_value=None),
     ):
         mock_files.return_value.joinpath.return_value = mock_path
         mock_as_file.return_value.__enter__.return_value = mock_path
@@ -80,13 +80,14 @@ def test_get_market_shares_pkg_resource(tmp_path):
 
     pkg_res = MagicMock()
     pkg_res.is_file.return_value = True
-    with patch("materia_epd.resources.files") as mfiles, patch(
-        "materia_epd.resources.as_file"
-    ) as mas_file, patch(
-        "materia_epd.resources.io_files.read_json_file", return_value={"pkg": True}
-    ) as mread, patch(
-        "materia_epd.resources.io_files.write_json_file"
-    ) as mwrite:
+    with (
+        patch("materia_epd.resources.files") as mfiles,
+        patch("materia_epd.resources.as_file") as mas_file,
+        patch(
+            "materia_epd.resources.io_files.read_json_file", return_value={"pkg": True}
+        ) as mread,
+        patch("materia_epd.resources.io_files.write_json_file") as mwrite,
+    ):
         mfiles.return_value.joinpath.return_value = pkg_res
         mas_file.return_value.__enter__.return_value = tmp_path / "pkg.json"
 
@@ -105,13 +106,16 @@ def test_get_market_shares_user_file(tmp_path):
     user_file.parent.mkdir(parents=True, exist_ok=True)
     user_file.write_text("{}", encoding="utf-8")
 
-    with patch("materia_epd.resources.USER_DATA_DIR", user_root), patch(
-        "materia_epd.resources.files"
-    ) as mfiles, patch("materia_epd.resources.as_file"), patch(
-        "materia_epd.resources.io_files.read_json_file", return_value={"user": True}
-    ) as mread, patch(
-        "materia_epd.resources.io_files.write_json_file"
-    ) as mwrite:
+    with (
+        patch("materia_epd.resources.USER_DATA_DIR", user_root),
+        patch("materia_epd.resources.files") as mfiles,
+        patch("materia_epd.resources.as_file"),
+        patch(
+            "materia_epd.resources.io_files.read_json_file",
+            return_value={"user": True},
+        ) as mread,
+        patch("materia_epd.resources.io_files.write_json_file") as mwrite,
+    ):
         mfiles.return_value.joinpath.return_value = pkg_res
 
         assert res.get_market_shares("LU", "0101") == {"user": True}
@@ -132,11 +136,12 @@ def test_get_market_shares_generate_and_store(tmp_path, capsys):
     sys.modules.setdefault("materia_epd.market", types.ModuleType("materia_epd.market"))
     sys.modules["materia_epd.market.market"] = market_mod
 
-    with patch("materia_epd.resources.USER_DATA_DIR", user_root), patch(
-        "materia_epd.resources.files"
-    ) as mfiles, patch("materia_epd.resources.as_file"), patch(
-        "materia_epd.resources.io_files.write_json_file"
-    ) as mwrite:
+    with (
+        patch("materia_epd.resources.USER_DATA_DIR", user_root),
+        patch("materia_epd.resources.files") as mfiles,
+        patch("materia_epd.resources.as_file"),
+        patch("materia_epd.resources.io_files.write_json_file") as mwrite,
+    ):
         mfiles.return_value.joinpath.return_value = pkg_res
 
         out = res.get_market_shares("FR", "0303")
@@ -153,9 +158,13 @@ def test_get_market_shares_generate_and_store(tmp_path, capsys):
 
 def test_get_comtrade_api_key_from_file(tmp_path):
     api_path = tmp_path / "comtrade_api_key.json"
-    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
-        "materia_epd.resources.io_files.read_json_file", return_value={"apikey": "XYZ"}
-    ) as mread:
+    with (
+        patch("materia_epd.resources.USER_DATA_DIR", tmp_path),
+        patch(
+            "materia_epd.resources.io_files.read_json_file",
+            return_value={"apikey": "XYZ"},
+        ) as mread,
+    ):
         api_path.write_text("{}", encoding="utf-8")
         assert res.get_comtrade_api_key() == "XYZ"
         mread.assert_called_once_with(api_path)
@@ -163,11 +172,12 @@ def test_get_comtrade_api_key_from_file(tmp_path):
 
 def test_get_comtrade_api_key_prompt_and_store(tmp_path, capsys):
     api_path = tmp_path / "comtrade_api_key.json"
-    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
-        "builtins.input", return_value="abc123"
-    ), patch("materia_epd.resources.io_files.read_json_file", return_value={}), patch(
-        "materia_epd.resources.io_files.write_json_file"
-    ) as mwrite:
+    with (
+        patch("materia_epd.resources.USER_DATA_DIR", tmp_path),
+        patch("builtins.input", return_value="abc123"),
+        patch("materia_epd.resources.io_files.read_json_file", return_value={}),
+        patch("materia_epd.resources.io_files.write_json_file") as mwrite,
+    ):
         key = res.get_comtrade_api_key()
         assert key == "abc123"
         mwrite.assert_called_once_with(api_path, {"apikey": "abc123"})
@@ -175,9 +185,11 @@ def test_get_comtrade_api_key_prompt_and_store(tmp_path, capsys):
 
 
 def test_get_comtrade_api_key_empty_raises(tmp_path):
-    with patch("materia_epd.resources.USER_DATA_DIR", tmp_path), patch(
-        "builtins.input", return_value="  "
-    ), patch("materia_epd.resources.io_files.read_json_file", return_value={}):
+    with (
+        patch("materia_epd.resources.USER_DATA_DIR", tmp_path),
+        patch("builtins.input", return_value="  "),
+        patch("materia_epd.resources.io_files.read_json_file", return_value={}),
+    ):
         import pytest
 
         with pytest.raises(ValueError, match="API key cannot be empty."):

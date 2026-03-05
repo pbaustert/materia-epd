@@ -18,6 +18,7 @@ from materia_epd.epd.filters import (
     UUIDFilter,
 )
 from materia_epd.epd.models import IlcdProcess
+from materia_epd.epd.report import build_report, write_report
 from materia_epd.geo.locations import escalate_location_set
 from materia_epd.metrics.averaging import (
     average_impacts,
@@ -121,11 +122,9 @@ def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
         filtered_epds = list(gen_filtered_epds(pre_filtered_edps, filters))
 
     if len(filtered_epds) == 0:
-        return None, None
+        return None, None, None
 
     for epd in filtered_epds:
-        # print(epd.uuid)
-        # print(epd.material.to_dict())
         epd.get_lcia_results()
 
     avg_properties = average_material_properties(filtered_epds)
@@ -152,7 +151,16 @@ def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
         selected_epds=len(filtered_epds),
     )
 
-    return avg_properties, avg_gwps
+    report = build_report(
+        report_uuid=process.uuid,
+        epd_entries=filtered_epds,
+        avg_impacts=avg_gwps,
+        avg_physical=avg_properties,
+        initial_epds=len(process.matches["uuids"]),
+        selected_epds=len(filtered_epds),
+    )
+
+    return avg_properties, avg_gwps, report
 
 
 def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path: Path):
@@ -178,7 +186,7 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
         if process.matches:
             logger.info(f"Processing {ICONS.HOURGLASS}", uuid=process.uuid)
 
-            avg_properties, avg_gwps = epd_pipeline(process, epds)
+            avg_properties, avg_gwps, report = epd_pipeline(process, epds)
             if avg_properties is None and avg_gwps is None:
                 logger.warning(
                     f"Failed {ICONS.ERROR}",
@@ -189,6 +197,7 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
                 process.material = Material(**avg_properties)
                 process.write_process(avg_gwps, output_path)
                 process.write_flow(avg_properties, output_path)
+                write_report(report, output_path, process.uuid)
                 logger.info(
                     f"Completed {ICONS.SUCCESS}",
                     uuid=process.uuid,

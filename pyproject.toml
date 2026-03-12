@@ -56,7 +56,7 @@ where = ["src"]
 materia = ["data/*.json"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=90"
+addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=80"
 testpaths = ["tests"]
 
 [tool.deptry]

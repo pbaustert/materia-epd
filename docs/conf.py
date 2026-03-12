@@ -7,6 +7,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import datetime
 import os
 import sys
 import shutil
@@ -34,7 +35,7 @@ except ImportError:
     from sphinx import apidoc
 
 output_dir = os.path.join(__location__, "api")
-module_dir = os.path.join(__location__, "../src/materia")
+module_dir = os.path.join(__location__, "../src/materia_epd")
 try:
     shutil.rmtree(output_dir)
 except FileNotFoundError:
@@ -72,13 +73,15 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "myst_parser",
+    "sphinxcontrib.mermaid",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -88,7 +91,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "MaterIA"
-copyright = "2025, Paul Baustert"
+copyright = datetime.date.today().strftime("%Y") + "Paul Baustert"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

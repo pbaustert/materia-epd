@@ -4,7 +4,7 @@ EPD pipeline explained
 
 This page explains **what** the ``materia_epd.epd.pipeline`` module does and
 **why** its steps are organised the way they are. It is meant as an
-*explanation* (Diátaxis) rather than a step‑by‑step guide or API reference.
+*explanation* rather than a step‑by‑step guide or API reference.
 
 
 High‑level goals
@@ -208,7 +208,7 @@ how the whole **folder tree** is traversed and updated:
     * writes a flow file describing the averaged material,
     * logs successful completion.
 
-At the explanation level, ``run_materia`` is responsible for:
+``run_materia`` is responsible for:
 
 * **scaling up** the per‑process logic of ``epd_pipeline`` to an entire
   dataset,
@@ -250,7 +250,9 @@ Putting everything together, the conceptual control‑flow looks like:
      A1 --> O2
      A2 --> O1
 
-From a Diátaxis **explanation** perspective, the key ideas are:
+
+TL;DR
+=====
 
 * The pipeline treats EPDs as **evidence** that is filtered and aggregated to
   construct a representative, market‑specific view of a material.

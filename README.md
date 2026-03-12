@@ -24,7 +24,7 @@
 
 Install via PyPI:
 
-```bash
+```console
 pip install materia-epd
 ```
 
@@ -35,7 +35,7 @@ Requires Python 3.10+.
 ## Usage
 Here’s a minimal example:
 
-```bash
+```console
 python -m materia_epd <generic_processes_dir> <epd_processes_dir> -o <output_dir> -v
 ```
 
@@ -43,7 +43,7 @@ Note that you need to point to the \root\provesses folders and need to provide a
 Add the flag --v or -v for verbosity. Logs files with details will be automatically created in `<output_dir>`.
 The `<generic_processes_dir>` folder should be structured like this:
 
-```bash
+```
 <generic_process_dir>
 ├── flows
 │   ├── <flow-uuid-1>.xml # Reference flow of EPD-uuid-1
@@ -61,14 +61,16 @@ The `<generic_processes_dir>` folder should be structured like this:
 └── templates
     ├── GenPro_template.xml # Template with the EPD schema
     └── GenRef_template.xml # Template with the flow schema
+
 ```
 
 The `<epd_process_dir>` should have a structure like this:
 
-```bash
+```
 <epd_process_dir>
 ├── flows # Contains all reference flows of all processes
 └── processes # Contains all the potential source EPDs
+
 ```
 
 The .json files are named after corresponding generic products and should be strucured as follows:
@@ -84,5 +86,6 @@ The .json files are named after corresponding generic products and should be str
     "... more UUIDs ..."
   ]
 }
+
 ```
 where the provided uuids link to the process files of the EPDs that match.

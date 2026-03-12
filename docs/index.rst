@@ -30,6 +30,7 @@ Contents
    :maxdepth: 2
 
    Overview <readme>
+   EPD pipeline explained <pipeline_explanation>
    Contributions & Help <contributing>
    License <license>
    Authors <authors>

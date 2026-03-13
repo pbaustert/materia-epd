@@ -1,14 +1,11 @@
-========================
-EPD pipeline explained
-========================
+# EPD pipeline explained
 
 This page explains **what** the ``materia_epd.epd.pipeline`` module does and
 **why** its steps are organised the way they are. It is meant as an
 *explanation* rather than a step‑by‑step guide or API reference.
 
 
-High‑level goals
-================
+## High‑level goals
 
 The EPD pipeline turns:
 
@@ -29,8 +26,7 @@ Conceptually, the pipeline answers:
 * **What is the “average” material and environmental impact for a market?**
 
 
-Conceptual overview of the module
-=================================
+## Conceptual overview of the module
 
 The main concepts in ``pipeline.py`` are:
 
@@ -43,22 +39,20 @@ The main concepts in ``pipeline.py`` are:
 
 The conceptual data‑flow looks like this:
 
-.. mermaid::
+```{mermaid}
+flowchart TD
+    A[EPD XML files folder ] -->|parse| B[IlcdProcess EPDs]
+    C[Generic process XML files folder] -->|parse & enrich| D[IlcdProcess processes]
+    D -->|for each process with matches| E[epd_pipeline]
+    B --> E
+    E --> F[Avg. materialproperties]
+    E --> G[Market‑weightedimpacts per country]
+    F --> H[Write updatedprocess XML]
+    F --> I[Write updatedflow XML]
+    G --> H
+```
 
-   flowchart LR
-     A[EPD XML files<br/>(folder)] -->|parse| B(IlcdProcess<br/>(EPDs))
-     C[Generic process XML files<br/>(folder)] -->|parse & enrich| D(IlcdProcess<br/>(processes))
-     D -->|for each process with matches| E[epd_pipeline]
-     B --> E
-     E --> F[Avg. material<br/>properties]
-     E --> G[Market‑weighted<br/>impacts per country]
-     F --> H[Write updated<br/>process XML]
-     F --> I[Write updated<br/>flow XML]
-     G --> H
-
-
-XML object generation
-=====================
+## XML object generation
 
 Two small generators define how XML is brought into the pipeline:
 
@@ -71,8 +65,7 @@ These functions are intentionally low‑level: they abstract *file iteration and
 parsing* but do not decide anything about *relevance* or *aggregation*.
 
 
-Filtering and location escalation
-=================================
+## Filtering and location escalation
 
 Filtering logic is split into composable parts:
 
@@ -101,20 +94,19 @@ This design separates **“what we want”** (filters) from
 
 The escalation behaviour can be seen conceptually as:
 
-.. mermaid::
+```{mermaid}
 
    flowchart TD
-     S[Requested locations] --> L1[Try exact<br/>matches]
-     L1 -->|no EPDs| L2[Escalate to<br/>broader regions]
-     L2 -->|no EPDs| L3[Escalate again<br/>(e.g. EU, global)]
+     S[Requested locations] --> L1[Try exactmatches]
+     L1 -->|no EPDs| L2[Escalate tobroader regions]
+     L2 -->|no EPDs| L3[Escalate again e.g. EU, global]
      L3 -->|no EPDs after N attempts| E[NoMatchingEPDError]
-     L1 -->|EPDs found| R[Use matching<br/>EPDs]
+     L1 -->|EPDs found| R[Use matchingEPDs]
      L2 -->|EPDs found| R
      L3 -->|EPDs found| R
+```
 
-
-The ``epd_pipeline`` function
-=============================
+## The ``epd_pipeline`` function
 
 ``epd_pipeline(process, path_to_epd_folder)`` is the **core conceptual unit**
 of the module. For a single generic process, it:
@@ -180,8 +172,7 @@ Conceptually, ``epd_pipeline`` moves from **raw EPDs** to a
 **market‑representative material and impact profile** for a single process.
 
 
-Orchestration via ``run_materia``
-=================================
+## Orchestration via ``run_materia``
 
 While ``epd_pipeline`` encapsulates the logic for *one* process,
 ``run_materia(path_to_gen_folder, path_to_epd_folder, output_path)`` explains
@@ -216,26 +207,25 @@ how the whole **folder tree** is traversed and updated:
 * and providing **progress feedback** to users.
 
 
-How the pieces fit together
-===========================
+## How the pieces fit together
 
 Putting everything together, the conceptual control‑flow looks like:
 
-.. mermaid::
+```{mermaid}
 
    flowchart TD
      subgraph Input
-       G[Generic processes<br/>(XML in gen/processes)]
-       E[EPDs<br/>(XML in epd/processes)]
+       G[Generic processes XML in gen/processes]
+       E[EPDs XML in epd/processes]
      end
 
      subgraph Pipeline
        R[run_materia]
-       P[epd_pipeline<br/>(per process)]
-       F1[Filtering &<br/>unit conformity]
-       F2[Location<br/>escalation]
-       A1[Avg. material<br/>properties]
-       A2[Market‑weighted<br/>impacts]
+       P[epd_pipeline per process]
+       F1[Filtering &unit conformity]
+       F2[Locationescalation]
+       A1[Avg. materialproperties]
+       A2[Market‑weightedimpacts]
      end
 
      subgraph Output
@@ -249,10 +239,9 @@ Putting everything together, the conceptual control‑flow looks like:
      P --> F1 --> F2 --> A1 --> A2
      A1 --> O2
      A2 --> O1
+```
 
-
-TL;DR
-=====
+## TL;DR
 
 * The pipeline treats EPDs as **evidence** that is filtered and aggregated to
   construct a representative, market‑specific view of a material.

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-
 import structlog
 
 from materia_epd.epd.models import IlcdProcess
@@ -41,20 +40,22 @@ class UnitConformityFilter(EPDFilter):
         try:
             epd.get_ref_flow()
             logger.debug(
-                "Ref. flow identified and parsed",
+                "Ref. flow identified and parsed \n",
                 epd_uuid=epd.uuid,
                 flow_uuid=epd.ref_flow.uuid,
             )
         except Exception as e:
             logger.debug(
-                "Flow XML could not be processsed \n", epd_uuid=epd.uuid, exec_info=e
+                "Flow XML could not be processsed \n",
+                epd_uuid=epd.uuid,
+                exec_info=e,
             )
             return False
 
         try:
             epd.material.rescale(self.target_kwargs)
             logger.debug(
-                "Flow rescaled correctly",
+                "Flow rescaled correctly \n",
                 epd_uuid=epd.uuid,
                 flow_uuid=epd.ref_flow.uuid,
             )
@@ -81,3 +82,19 @@ class LocationFilter(EPDFilter):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(code={self.locations})"
+
+
+def filter_failure(epd, filt):
+    """Returns explanation for why a filter rejected an EPD."""
+    try:
+        ok = filt.matches(epd)
+    except Exception as e:
+        return f"{filt.__class__.__name__} raised exception: {e}"
+
+    if ok:
+        return None
+
+    if isinstance(filt, UnitConformityFilter):
+        return "Unit conformity failed during ref_flow or rescale"
+
+    return f"Failed filter {filt.__class__.__name__}"

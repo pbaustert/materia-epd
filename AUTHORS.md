@@ -1,4 +1,6 @@
 # Contributors
 
-* Paul Baustert <p.m.baustert@gmail.com>
+* pbaustert
 * killileg
+* tngTUDOR
+* glarreag

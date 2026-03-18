@@ -16,9 +16,10 @@ from materia_epd.epd.filters import (
     LocationFilter,
     UnitConformityFilter,
     UUIDFilter,
+    filter_failure,
 )
 from materia_epd.epd.models import IlcdProcess
-from materia_epd.epd.report import build_report, write_report
+from materia_epd.epd.report import build_report, write_report, draw_report
 from materia_epd.geo.locations import escalate_location_set
 from materia_epd.metrics.averaging import (
     average_impacts,
@@ -60,15 +61,27 @@ def gen_epds(folder_path):
     logger.info("XML processes files parsed")
 
 
-def gen_filtered_epds(epds: list[IlcdProcess], filters: list[EPDFilter]):
-    """Filters out EPD objects that do not match filters"""
-    for epd in track(epds, description="Processing...", transient=True):
-        # logger.debug(f"Filtering EPD {epd.uuid}")
-        if all(filt.matches(epd) for filt in filters):
-            yield epd
+def get_filtered_epds(epds: list[IlcdProcess], filters: list[EPDFilter]):
+    """Filters out EPD objects that do not match filters AND collects reasons."""
+    accepted = []
+    rejected = []
+
+    for epd in epds:
+        reasons = []
+        for filt in filters:
+            if not filt.matches(epd):
+                reason = filter_failure(epd, filt)
+                if reason:
+                    reasons.append(reason)
+        if reasons:
+            rejected.append((epd.uuid, reasons))
+        else:
+            accepted.append(epd)
+
+    return accepted, rejected
 
 
-def gen_locfiltered_epds(
+def get_locfiltered_epds(
     epd_roots: list[IlcdProcess], filters: list[EPDFilter], max_attempts=4
 ):
     """Filters EPDS by location"""
@@ -77,37 +90,38 @@ def gen_locfiltered_epds(
     for filt in filters:
         wanted_locations.update(filt.locations)
     for _ in range(max_attempts):
-        epds = list(gen_filtered_epds(epd_roots, filters))
+        epds, _ = get_filtered_epds(epd_roots, filters)
         if epds:
-            yield from epds
-            return
-        wanted_locations = escalate_location_set(wanted_locations)
-        filters = [LocationFilter(wanted_locations)]
+            return epds
+        else:
+            wanted_locations = escalate_location_set(wanted_locations)
+            filters = [LocationFilter(wanted_locations)]
     raise NoMatchingEPDError(filters)
 
 
-def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
+def epd_pipeline(process: IlcdProcess, epds: list[IlcdProcess]):
     """Aggregates the data of different EPDs into a new generic EPD.
     For a new EPD detailed in `process`, it looks
     the source EPDs that should be included in `epds`.
     This pipeline applies different filtering criteria
     to exclude not-matching or inconsisting source EPDs.
     """
-    pre_filtered_edps = []
+
+    # Pre-filter stage: get matched epds
+    pre_filtered_epds, _ = get_filtered_epds(epds, [UUIDFilter(process.matches)])
+
+    # If an EPD is not found in provided folder we catch it here
+    missing_epds = []
     for uuid in process.matches["uuids"]:
-        try:
-            pre_filtered_edps.append(epds[uuid])
-            logger.debug("Files check", source_uuid=uuid, exists=True)
-        except Exception as e:
-            logger.debug("Files check", source_uuid=uuid, exists=False, exec_info=e)
-    filters = []
-    if process.matches:
-        filters.append(UUIDFilter(process.matches))
-    if process.material_kwargs:
-        filters.append(UnitConformityFilter(process.material_kwargs))
+        if uuid not in [epd.uuid for epd in pre_filtered_epds]:
+            missing_epds.append((uuid, "EPD was not found in provided folder."))
 
-    filtered_epds = list(gen_filtered_epds(pre_filtered_edps, filters))
+    # Filter stage: get viable epds
+    filtered_epds, rejected_epds = get_filtered_epds(
+        pre_filtered_epds, [UnitConformityFilter(process.material_kwargs)]
+    )
 
+    # If no viable epds: try for mass based declared unit
     if len(filtered_epds) == 0:
         logger.warning(
             f"Switched from {process.dec_unit}-based to "
@@ -117,10 +131,11 @@ def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
         logger.info(f"Processing {ICONS.HOURGLASS}", uuid=process.uuid)
         process.material_kwargs = MASS_KWARGS
         process.dec_unit = "mass"
-        filters = [f for f in filters if not isinstance(f, UnitConformityFilter)]
-        filters.append(UnitConformityFilter(process.material_kwargs))
-        filtered_epds = list(gen_filtered_epds(pre_filtered_edps, filters))
+        filtered_epds, rejected_epds = get_filtered_epds(
+            pre_filtered_epds, [UnitConformityFilter(process.material_kwargs)]
+        )
 
+    # If no viable epds: return None
     if len(filtered_epds) == 0:
         return None, None, None
 
@@ -132,15 +147,21 @@ def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
     mat.rescale(process.material_kwargs)
     avg_properties = mat.to_dict()
 
+    # Market stage:
     market_epds = {
-        country: list(gen_locfiltered_epds(filtered_epds, [LocationFilter({country})]))
+        country: list(get_locfiltered_epds(filtered_epds, [LocationFilter({country})]))
         for country in process.market
     }
 
-    # TODO: is this supposed to loop and `epds` generator?????
+    # If an EPD is not matched to a market country (or RoW) we catch it here
+    unmatched_epds = []
+    for uuid in [epd.uuid for epd in filtered_epds]:
+        if uuid not in set([epd.uuid for epds in market_epds.values() for epd in epds]):
+            unmatched_epds.append((uuid, "EPD has no appropriate location in market."))
+
     market_impacts = {
-        country: average_impacts([epd.lcia_results for epd in epds])
-        for country, epds in market_epds.items()
+        country: average_impacts([epd.lcia_results for epd in country_epds])
+        for country, country_epds in market_epds.items()
     }
 
     avg_gwps = weighted_averages(process.market, market_impacts)
@@ -158,6 +179,7 @@ def epd_pipeline(process: IlcdProcess, epds: dict[str, IlcdProcess]):
         avg_physical=avg_properties,
         initial_epds=len(process.matches["uuids"]),
         selected_epds=len(filtered_epds),
+        rejected_epds=rejected_epds + missing_epds + unmatched_epds,
     )
 
     return avg_properties, avg_gwps, report
@@ -168,14 +190,10 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
     copy_except_folders(path_to_gen_folder, output_path, exclude)
 
     # First parse all XML processes to keep it in memory
-    epds_generator = gen_epds(path_to_epd_folder / "processes")
-    epds: dict[str, IlcdProcess] = {
-        str(parsed.uuid): parsed for parsed in epds_generator
-    }
+    epds = list(gen_epds(path_to_epd_folder / "processes"))
 
     logger.info(f"Parsed XML EPDs, {len(epds)}")
-    # assert 0
-    # breakpoint()
+
     for path, root in gen_xml_objects(path_to_gen_folder / "processes"):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
@@ -198,6 +216,7 @@ def run_materia(path_to_gen_folder: Path, path_to_epd_folder: Path, output_path:
                 process.write_process(avg_gwps, output_path)
                 process.write_flow(avg_properties, output_path)
                 write_report(report, output_path, process.uuid)
+                draw_report(report, output_path, process.uuid)
                 logger.info(
                     f"Completed {ICONS.SUCCESS}",
                     uuid=process.uuid,

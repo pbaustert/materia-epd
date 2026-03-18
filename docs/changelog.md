@@ -1,0 +1,3 @@
+(changes)=
+
+```{include} ../CHANGELOG.md

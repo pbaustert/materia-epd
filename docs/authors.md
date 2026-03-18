@@ -1,0 +1,3 @@
+(authors)=
+
+```{include} ../AUTHORS.md

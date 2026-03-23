@@ -156,6 +156,20 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
         "weight_per_piece": "Weight per piece",
     }
 
+    units_titles = {
+        "mass": "kg",
+        "length": "m",
+        "surface": "m^2",
+        "volume": "m^3",
+        "unit_count": "unit",
+        "gross_density": "kg/m^3",
+        "grammage": "kg/m^2",
+        "linear_density": "kg/m",
+        "layer_thickness": "m",
+        "cross_sectional_area": "m^2",
+        "weight_per_piece": "kg",
+    }
+
     df_phys = pd.DataFrame(
         [{"epd_uuid": epd["epd_uuid"], **epd["physical"]} for epd in report["epds"]]
     )
@@ -211,20 +225,25 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
         values = df_phys[field].dropna()
         avg_value = df_phys_avg[field].iloc[0]
 
+        # --- draw boxplot + average marker ---
         if len(values) > 0:
             vals = values.dropna()
-
-            if vals.nunique() <= 1:
-                pass
-            else:
+            if vals.nunique() > 1:
                 ax.boxplot([vals], positions=[1], widths=0.5)
 
             if pd.notna(avg_value):
                 ax.scatter([1], [avg_value], color="red", s=35, zorder=3)
 
+        # --- title with units ---
+        title = physical_titles[field]
+        unit = units_titles.get(field)
+
+        if unit:
+            title = f"{title} [{unit}]"
+
+        ax.set_title(title, fontsize=9)
         ax.set_xticks([1])
         ax.set_xticklabels([""])
-        ax.set_title(physical_titles[field], fontsize=9)
         ax.grid(axis="y", linestyle="--", alpha=0.25)
         ax.tick_params(axis="y", labelsize=8)
 

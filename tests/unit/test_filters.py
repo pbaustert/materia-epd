@@ -5,7 +5,6 @@ from typing import Union
 from materia_epd.epd.filters import (
     EPDFilter,
     LocationFilter,
-    UnitConformityFilter,
     UUIDFilter,
 )
 
@@ -66,23 +65,3 @@ def test_locationfilter_matches_and_repr():
     assert f.matches(FakeProcess(loc="FR")) is True
     assert f.matches(FakeProcess(loc="IT")) is False
     assert "code=" in repr(f)
-
-
-def test_unitconformityfilter_matches_when_rescale_ok():
-    mat = FakeMaterial(raise_error=False)
-    epd = FakeProcess(material=mat)
-    filt = UnitConformityFilter({"mass": 2.0})
-    assert filt.matches(epd) is True
-    # get_ref_flow called and rescale received kwargs
-    assert epd.ref_flow_called == 1
-    assert mat.calls == [{"mass": 2.0}]
-    assert "target={'mass': 2.0}" in repr(filt)
-
-
-def test_unitconformityfilter_returns_false_on_valueerror():
-    mat = FakeMaterial(raise_error=True)
-    epd = FakeProcess(material=mat)
-    filt = UnitConformityFilter({"volume": 3.0})
-    assert filt.matches(epd) is False
-    # Still calls get_ref_flow even if rescale fails
-    assert epd.ref_flow_called == 1

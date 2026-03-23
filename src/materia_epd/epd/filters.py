@@ -35,38 +35,75 @@ class UUIDFilter(EPDFilter):
 class UnitConformityFilter(EPDFilter):
     def __init__(self, target_kwargs):
         self.target_kwargs = target_kwargs
+        self.last_failure = None
 
     def matches(self, epd: IlcdProcess) -> bool:
+        self.last_failure = None
+
         try:
             epd.get_ref_flow()
             logger.debug(
-                "Ref. flow identified and parsed \n",
+                "Ref. flow identified and parsed",
                 epd_uuid=epd.uuid,
                 flow_uuid=epd.ref_flow.uuid,
+                target_kwargs=self.target_kwargs,
             )
         except Exception as e:
+            self.last_failure = f"Flow XML could not be processed: {e}"
             logger.debug(
-                "Flow XML could not be processsed \n",
+                "Flow XML could not be processed",
                 epd_uuid=epd.uuid,
-                exec_info=e,
+                target_kwargs=self.target_kwargs,
+                exec_info=repr(e),
             )
             return False
 
+        logger.debug(
+            "Material before rescale",
+            epd_uuid=epd.uuid,
+            flow_uuid=epd.ref_flow.uuid,
+            target_kwargs=self.target_kwargs,
+            material=epd.material.to_dict(),
+        )
+
         try:
+            logger.debug(
+                "Flow rescale attempt",
+                epd_uuid=epd.uuid,
+                flow_uuid=epd.ref_flow.uuid,
+                target_kwargs=self.target_kwargs,
+            )
             epd.material.rescale(self.target_kwargs)
+
             logger.debug(
-                "Flow rescaled correctly \n",
+                "Material after rescale",
                 epd_uuid=epd.uuid,
                 flow_uuid=epd.ref_flow.uuid,
+                target_kwargs=self.target_kwargs,
+                material=epd.material.to_dict(),
             )
+
+            logger.debug(
+                "Flow rescaled correctly",
+                epd_uuid=epd.uuid,
+                flow_uuid=epd.ref_flow.uuid,
+                target_kwargs=self.target_kwargs,
+            )
+
         except Exception as e:
+            self.last_failure = f"Flow XML could not be rescaled: {e}"
+
             logger.debug(
-                "Flow XML could not be rescaled \n",
+                "Material after failed rescale",
                 epd_uuid=epd.uuid,
                 flow_uuid=epd.ref_flow.uuid,
-                exec_info=e,
+                target_kwargs=self.target_kwargs,
+                material=epd.material.to_dict(),
+                exec_info=repr(e),
             )
+
             return False
+
         return True
 
     def __repr__(self):
@@ -86,13 +123,8 @@ class LocationFilter(EPDFilter):
 
 def filter_failure(epd, filter):
     """Returns explanation for why a filter rejected an EPD."""
-    try:
-        ok = filter.matches(epd)
-    except Exception as e:
-        return f"{filter.__class__.__name__} raised exception: {e}"
-
-    if ok:
-        return None
+    if isinstance(filter, UnitConformityFilter) and filter.last_failure:
+        return filter.last_failure
 
     if isinstance(filter, UUIDFilter):
         return f"UUID does not match {filter.uuids}."

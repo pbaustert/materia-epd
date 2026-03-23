@@ -40,7 +40,17 @@ def pipeline_has_outputs(ctx: EpdPipelineContext) -> bool:
 
 
 def print_pipeline_summary(ctx: EpdPipelineContext) -> None:
-    status_text = "[green]SUCCESS[/green]" if ctx.success else "[red]FAILED[/red]"
+    # Decide base status color by success, override to yellow if fallback used
+    status_color = "green" if ctx.success else "red"
+    if ctx.used_mass_fallback:
+        status_color = "yellow"
+
+    # Status label (optionally clarify that fallback was used)
+    status_label = "SUCCESS" if ctx.success else "FAILED"
+    if ctx.used_mass_fallback:
+        status_label += " (MASS-FALLBACK)"
+
+    status_text = f"[{status_color}]{status_label}[/{status_color}]"
     title = f"Pipeline result for {ctx.process.uuid}"
 
     table = Table(show_header=False, box=None)
@@ -57,6 +67,7 @@ def print_pipeline_summary(ctx: EpdPipelineContext) -> None:
     table.add_row("Fallback used", str(ctx.used_mass_fallback))
     table.add_row("Final declared unit", str(ctx.active_dec_unit))
 
+    # Keep panel border green/red based on overall success
     border_style = "green" if ctx.success else "red"
     console.print(Panel(table, title=title, border_style=border_style))
 

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import click
 
-from materia_epd.epd.pipeline import run_materia
+from materia_epd.pipeline.run import run_materia
 from materia_epd.logging_utils import setup_logging
 
 

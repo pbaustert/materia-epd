@@ -8,6 +8,7 @@ from materia_epd.core.constants import TRADE_ROW_REGIONS
 
 
 def fetch_trade_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
+    """Get raw trade flow data from comtrade."""
     comtradeapikey = get_comtrade_api_key()
     location = get_location_data(loc_code)
     comtradeID = location["comtradeID"]
@@ -41,7 +42,7 @@ def fetch_trade_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | 
 
 
 def estimate_market_shares(df):
-    """Estimate market shares from import data (compact, no new helpers)."""
+    """Estimate market shares from raw data."""
     df.columns = [c.lower().strip() for c in df.columns]
     if not {"partneriso", "qty"}.issubset(df.columns):
         print("❌ Missing required columns:", df.columns.tolist())
@@ -75,6 +76,7 @@ def estimate_market_shares(df):
 
 
 def generate_market(loc_code, hs_code) -> None:
+    """Generate the market for the provided country and HS code."""
     df = fetch_trade_data_for_hs_code(loc_code, hs_code)
     if df is not None:
         return estimate_market_shares(df)

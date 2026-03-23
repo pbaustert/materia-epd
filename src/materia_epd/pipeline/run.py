@@ -90,6 +90,7 @@ def run_materia(
         pipeline = Pipeline(RecipeFactory().build(ctx))
         ctx = pipeline.run(ctx)
         print_pipeline_summary(ctx)
+        # log_pipeline_diagnostics(logger, ctx)
 
         if pipeline_has_outputs(ctx):
             process.material = Material(**ctx.avg_properties)

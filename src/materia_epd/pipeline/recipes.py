@@ -8,6 +8,7 @@ from materia_epd.pipeline.stages import (
     ComputeAveragePropertiesStage,
     ComputeAverageImpactsStage,
     ComputeMarketAverageImpactsStage,
+    ValidateAveragedImpactsStage,
     BuildReportStage,
 )
 from materia_epd.pipeline.context import EpdPipelineContext
@@ -22,6 +23,7 @@ class RecipeFactory:
                 FallbackToMassStage(),
                 ComputeAveragePropertiesStage(),
                 ComputeAverageImpactsStage(),
+                ValidateAveragedImpactsStage(),
                 BuildReportStage(),
             ]
         if ctx.matches.get("type") == "market-average":
@@ -31,6 +33,7 @@ class RecipeFactory:
                 FallbackToMassStage(),
                 ComputeAveragePropertiesStage(),
                 ComputeMarketAverageImpactsStage(),
+                ValidateAveragedImpactsStage(),
                 BuildReportStage(),
             ]
         else:

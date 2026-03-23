@@ -264,7 +264,7 @@ class ValidateAveragedImpactsStage:
 
         imbalance = A + C3 + C4
 
-        if abs(imbalance) > _TOL_ABS:
+        if imbalance < 0 and abs(imbalance) > _TOL_ABS:
             # Push correction to C4
             new_C4 = C4 - imbalance
 

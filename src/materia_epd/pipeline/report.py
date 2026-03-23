@@ -212,7 +212,13 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
         avg_value = df_phys_avg[field].iloc[0]
 
         if len(values) > 0:
-            ax.boxplot([values], positions=[1], widths=0.5)
+            vals = values.dropna()
+
+            if vals.nunique() <= 1:
+                pass
+            else:
+                ax.boxplot([vals], positions=[1], widths=0.5)
+
             if pd.notna(avg_value):
                 ax.scatter([1], [avg_value], color="red", s=35, zorder=3)
 

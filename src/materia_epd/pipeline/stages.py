@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from materia_epd.pipeline.context import EpdPipelineContext
+from materia_epd.core.constants import _TOL_ABS
 from materia_epd.pipeline.report import build_report
 from materia_epd.epd.filters import (
     UUIDFilter,
@@ -243,4 +244,69 @@ class BuildReportStage:
             rejected=len(ctx.rejected_epds),
             missing=len(ctx.missing_epds),
             unmatched=len(ctx.unmatched_epds),
+        )
+
+
+class ValidateAveragedImpactsStage:
+    name = "validate-averaged-impacts"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        gwps = ctx.avg_gwps
+        T = gwps.get("Climate change-Total", {})
+        F = gwps.get("Climate change-Fossil", {})
+        B = gwps.get("Climate change-Biogenic", {})
+        L = gwps.get("Climate change-Land use and land use change", {})
+
+        # 1. Biogenic balance correction
+        A = B.get("A1-A3", 0.0)
+        C3 = B.get("C3", 0.0)
+        C4 = B.get("C4", 0.0)
+
+        imbalance = A + C3 + C4
+
+        if abs(imbalance) > _TOL_ABS:
+            # Push correction to C4
+            new_C4 = C4 - imbalance
+
+            B["C4"] = new_C4
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Biogenic carbon imbalance corrected.",
+                stage=self.name,
+                old_C4=C4,
+                new_C4=new_C4,
+                imbalance=imbalance,
+            )
+
+        # 2. Recompute all totals from components
+        for module in set(T) | set(F) | set(B) | set(L):
+            fossil = F.get(module, 0.0)
+            bio = B.get(module, 0.0)
+            luluc = L.get(module, 0.0)
+
+            new_total = fossil + bio + luluc
+            old_total = T.get(module, 0.0)
+
+            if abs(new_total - old_total) > _TOL_ABS:
+                rel_change = (
+                    None
+                    if abs(old_total) < 1e-12
+                    else (new_total - old_total) / abs(old_total)
+                )
+                T[module] = new_total
+
+                ctx.add_diagnostic(
+                    kind="warning",
+                    message="Total climate change value corrected to match components.",
+                    stage=self.name,
+                    module=module,
+                    old_total=old_total,
+                    new_total=new_total,
+                    relative_change=rel_change,
+                )
+
+        ctx.add_diagnostic(
+            kind="info",
+            message="Averaged climate change indicators validated.",
+            stage=self.name,
         )

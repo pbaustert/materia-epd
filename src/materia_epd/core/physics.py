@@ -66,7 +66,9 @@ def _round(value: float, decimals: int = _REL_DEC) -> float:
     return round(value, decimals)
 
 
-def check_properties_ranges(uuid: str, kwargs: Dict[str, Optional[float]]) -> None:
+def check_properties_ranges(
+    uuid: str, kwargs: Dict[str, Optional[float]]
+) -> Dict[str, Optional[float]]:
     for prop, value in kwargs.items():
         min_val, max_val = REASONABLE_RANGES[prop]
         if value is None:
@@ -74,7 +76,7 @@ def check_properties_ranges(uuid: str, kwargs: Dict[str, Optional[float]]) -> No
         if not (min_val <= value <= max_val):
             logger.debug(
                 f"Range warning {ICONS.WARNING}",
-                uuid=uuid,
+                epd_uuid=uuid,
                 message=f"{prop} {value} is outside "
                 f"the expected range ({min_val}–{max_val}).",
             )
@@ -84,7 +86,7 @@ def check_properties_ranges(uuid: str, kwargs: Dict[str, Optional[float]]) -> No
                     kwargs[prop] = value
                     logger.debug(
                         f"Unit conversion {ICONS.WARNING}",
-                        uuid=uuid,
+                        epd_uuid=uuid,
                         message=f"{prop} converted "
                         f"from {POTENTIAL_CORRECTIONS[prop]['from']} "
                         f"to {POTENTIAL_CORRECTIONS[prop]['to']}: {value}.",
@@ -286,4 +288,7 @@ class Material:
                 setattr(self, name, getattr(self, name) * self.scaling_factor)
 
         self.scaled_baseline = self.to_dict()
+        known_scaled = {k: v for k, v in self.scaled_baseline.items() if v is not None}
+        if set(known_scaled.keys()) == set(targets.keys()):
+            return self
         self._clean(targets)

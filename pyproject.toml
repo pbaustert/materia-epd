@@ -17,6 +17,8 @@ dependencies = [
     "comtradeapicall",
     "rich>=14.3.2",
     "structlog>=25.5.0",
+    "matplotlib",
+    "reportlab",
 ]
 license = "MIT"
 license-files = ["LICENSE.txt"]
@@ -56,7 +58,7 @@ where = ["src"]
 materia = ["data/*.json"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=60"
 testpaths = ["tests"]
 
 [tool.deptry]

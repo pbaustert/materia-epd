@@ -9,5 +9,12 @@
     "SWZ",
     "ZAF",
     "Southern Africa"
+  ],
+  "ColorHex": "#AF63DB",
+  "ColorRGBA": [
+    0.68,
+    0.39,
+    0.86,
+    0.2
   ]
 }

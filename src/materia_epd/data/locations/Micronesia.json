@@ -12,5 +12,12 @@
     "PLW",
     "UMI",
     "Micronesia"
+  ],
+  "ColorHex": "#63DB71",
+  "ColorRGBA": [
+    0.39,
+    0.86,
+    0.44,
+    0.2
   ]
 }

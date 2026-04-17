@@ -1,8 +1,15 @@
 {
   "ISO3": "REU",
-  "Name": "Réunion",
+  "Name": "R\u00e9union",
   "Class": "Country",
   "Parent": "Eastern Africa",
   "Children": null,
-  "comtradeID": 638
+  "comtradeID": 638,
+  "ColorHex": "#82DB63",
+  "ColorRGBA": [
+    0.51,
+    0.86,
+    0.39,
+    0.2
+  ]
 }

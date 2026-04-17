@@ -27,3 +27,12 @@ def escalate_location_set(location_set):
         for parent in {get_location_attribute(loc, "Parent") for loc in location_set}
         for child in (get_location_attribute(parent, "Children") or [])
     }
+
+
+def get_location_color(location_code: str):
+    """Return color metadata (hex + rgba) for a location, if available."""
+    location_data = get_location_data(location_code) or {}
+    return {
+        "hex": location_data.get("ColorHex"),
+        "rgba": location_data.get("ColorRGBA"),
+    }

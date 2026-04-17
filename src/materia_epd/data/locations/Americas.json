@@ -65,5 +65,12 @@
     "URY",
     "VEN",
     "Americas"
+  ],
+  "ColorHex": "#63DB7C",
+  "ColorRGBA": [
+    0.39,
+    0.86,
+    0.49,
+    0.2
   ]
 }

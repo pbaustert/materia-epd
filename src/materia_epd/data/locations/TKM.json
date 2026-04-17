@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Central Asia",
   "Children": null,
-  "comtradeID": 795
+  "comtradeID": 795,
+  "ColorHex": "#639FDB",
+  "ColorRGBA": [
+    0.39,
+    0.62,
+    0.86,
+    0.2
+  ]
 }

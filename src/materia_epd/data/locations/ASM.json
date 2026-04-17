@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Polynesia",
   "Children": null,
-  "comtradeID": 16
+  "comtradeID": 16,
+  "ColorHex": "#DB63BD",
+  "ColorRGBA": [
+    0.86,
+    0.39,
+    0.74,
+    0.2
+  ]
 }

@@ -12,5 +12,12 @@
     "PAN",
     "SLV",
     "Central America"
+  ],
+  "ColorHex": "#DB6376",
+  "ColorRGBA": [
+    0.86,
+    0.39,
+    0.46,
+    0.2
   ]
 }

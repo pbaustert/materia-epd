@@ -32,5 +32,12 @@
     "VGB",
     "VIR",
     "Caribbean"
+  ],
+  "ColorHex": "#82DB63",
+  "ColorRGBA": [
+    0.51,
+    0.86,
+    0.39,
+    0.2
   ]
 }

@@ -12,5 +12,12 @@
     "PRK",
     "TWN",
     "Eastern Asia"
+  ],
+  "ColorHex": "#96DB63",
+  "ColorRGBA": [
+    0.59,
+    0.86,
+    0.39,
+    0.2
   ]
 }

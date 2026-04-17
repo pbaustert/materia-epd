@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Australia and New Zealand",
   "Children": null,
-  "comtradeID": 36
+  "comtradeID": 36,
+  "ColorHex": "#63D7DB",
+  "ColorRGBA": [
+    0.39,
+    0.84,
+    0.86,
+    0.2
+  ]
 }

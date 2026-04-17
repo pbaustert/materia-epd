@@ -1,8 +1,15 @@
 {
   "ISO3": "TUR",
-  "Name": "Türkiye",
+  "Name": "T\u00fcrkiye",
   "Class": "Country",
   "Parent": "Western Asia",
   "Children": null,
-  "comtradeID": 792
+  "comtradeID": 792,
+  "ColorHex": "#DBD963",
+  "ColorRGBA": [
+    0.86,
+    0.85,
+    0.39,
+    0.2
+  ]
 }

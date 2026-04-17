@@ -89,3 +89,20 @@ The .json files are named after corresponding generic products and should be str
 
 ```
 where the provided uuids link to the process files of the EPDs that match.
+
+---
+
+## Development / running tests
+
+For local development, install the package in editable mode with developer dependencies:
+
+```console
+python -m pip install -e ".[dev]"
+```
+
+Then run tests:
+
+```console
+pytest
+```
+

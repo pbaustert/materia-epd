@@ -15,5 +15,12 @@
     "TLS",
     "VNM",
     "South-eastern Asia"
+  ],
+  "ColorHex": "#DBDA63",
+  "ColorRGBA": [
+    0.86,
+    0.85,
+    0.39,
+    0.2
   ]
 }

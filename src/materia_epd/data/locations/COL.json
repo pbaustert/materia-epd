@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "South America",
   "Children": null,
-  "comtradeID": 170
+  "comtradeID": 170,
+  "ColorHex": "#8463DB",
+  "ColorRGBA": [
+    0.52,
+    0.39,
+    0.86,
+    0.2
+  ]
 }

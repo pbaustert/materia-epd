@@ -168,7 +168,7 @@ REASONABLE_RANGES = {
     "linear_density": (0.001, 100.0),
     "cross_sectional_area": (0.000001, 10.0),
     "gross_density": (1.0, 20000.0),
-    "grammage": (0.05, 30.0),
+    "grammage": (0.05, 100.0),
     "volume": (0.000001, 100.0),
 }
 
@@ -177,8 +177,10 @@ POTENTIAL_CORRECTIONS = {
 }
 
 ACCEPTED_RESCALINGS = [
+    {"unit_count"},
     {"mass"},
     {"volume"},
+    {"surface"},
     {"surface", "layer_thickness"},
 ]
 

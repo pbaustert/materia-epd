@@ -59,5 +59,12 @@
     "MCO",
     "NLD",
     "Europe"
+  ],
+  "ColorHex": "#63DB68",
+  "ColorRGBA": [
+    0.39,
+    0.86,
+    0.41,
+    0.2
   ]
 }

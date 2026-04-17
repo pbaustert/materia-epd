@@ -10,5 +10,12 @@
     "NFK",
     "NZL",
     "Australia and New Zealand"
+  ],
+  "ColorHex": "#D6DB63",
+  "ColorRGBA": [
+    0.84,
+    0.86,
+    0.39,
+    0.2
   ]
 }

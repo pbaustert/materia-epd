@@ -49,3 +49,15 @@ def test_locations_full_coverage(monkeypatch):
     ).get(code)
 
     assert loc.escalate_location_set({"A", "B", "C"}) == {"Achild", "Bchild"}
+
+
+def test_get_location_color(monkeypatch):
+    loc.get_location_data = lambda code: {
+        "ColorHex": "#112233",
+        "ColorRGBA": [0.07, 0.13, 0.2, 0.2],
+    }
+
+    assert loc.get_location_color("XXX") == {
+        "hex": "#112233",
+        "rgba": [0.07, 0.13, 0.2, 0.2],
+    }

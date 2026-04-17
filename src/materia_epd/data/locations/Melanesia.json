@@ -9,5 +9,12 @@
     "SLB",
     "VUT",
     "Melanesia"
+  ],
+  "ColorHex": "#DB6E63",
+  "ColorRGBA": [
+    0.86,
+    0.43,
+    0.39,
+    0.2
   ]
 }

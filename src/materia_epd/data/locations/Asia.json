@@ -60,5 +60,12 @@
     "TUR",
     "YEM",
     "Asia"
+  ],
+  "ColorHex": "#637DDB",
+  "ColorRGBA": [
+    0.39,
+    0.49,
+    0.86,
+    0.2
   ]
 }

@@ -22,5 +22,12 @@
     "TUR",
     "YEM",
     "Western Asia"
+  ],
+  "ColorHex": "#D763DB",
+  "ColorRGBA": [
+    0.84,
+    0.39,
+    0.86,
+    0.2
   ]
 }

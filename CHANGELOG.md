@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 0.6.0 (2026-04-08)
+--------------------------
+
+- Update pipeline structure to flexible structure
+- Allow for simple averaging as well as market-averaging
+
 Version 0.5.0 (2026-02-12)
 --------------------------
 

@@ -9,5 +9,12 @@
     "SPM",
     "USA",
     "Northern America"
+  ],
+  "ColorHex": "#6399DB",
+  "ColorRGBA": [
+    0.39,
+    0.6,
+    0.86,
+    0.2
   ]
 }

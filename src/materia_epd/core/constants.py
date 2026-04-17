@@ -21,6 +21,7 @@ TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
 
 
 NS = {
+    "ns0": "http://lca.jrc.it/ILCD/Process",
     "common": "http://lca.jrc.it/ILCD/Common",
     "proc": "http://lca.jrc.it/ILCD/Process",
     "flow": "http://lca.jrc.it/ILCD/Flow",

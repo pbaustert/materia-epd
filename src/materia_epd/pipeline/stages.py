@@ -227,6 +227,7 @@ class BuildReportStage:
     def run(self, ctx: EpdPipelineContext) -> None:
         ctx.report = build_report(
             report_uuid=ctx.process.uuid,
+            process=ctx.process,
             epd_entries=ctx.filtered_epds,
             avg_impacts=ctx.avg_gwps,
             avg_physical=ctx.avg_properties,

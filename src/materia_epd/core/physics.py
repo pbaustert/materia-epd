@@ -171,7 +171,10 @@ def _project_logs_onto_eq(
 
     rhs = np.concatenate([2.0 * W @ base_logs, b_eq, d])
 
-    x = np.linalg.solve(K, rhs)
+    try:
+        x = np.linalg.solve(K, rhs)
+    except np.linalg.LinAlgError:
+        x, *_ = np.linalg.lstsq(K, rhs, rcond=None)
     return x[:n]
 
 

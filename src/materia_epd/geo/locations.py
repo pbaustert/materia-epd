@@ -36,3 +36,37 @@ def get_location_color(location_code: str):
         "hex": location_data.get("ColorHex"),
         "rgba": location_data.get("ColorRGBA"),
     }
+
+
+def get_transport_impact_per_kg(
+    source_location_code: str, target_location_code: str | None = None
+) -> dict[str, float]:
+    """Return transport impacts [kg CO2e / kg product] for a source location."""
+    try:
+        source_data = get_location_data(source_location_code) or {}
+    except Exception:
+        return {}
+
+    impact = (
+        (source_data.get("TransportImpactPerKgByTarget") or {}).get(target_location_code)
+        if target_location_code
+        else None
+    ) or (source_data.get("TransportImpactPerKgByTarget") or {}).get("default")
+    if isinstance(impact, dict):
+        return impact
+
+    parent = source_data.get("Parent")
+    if not parent:
+        return {}
+
+    try:
+        parent_data = get_location_data(parent) or {}
+    except Exception:
+        return {}
+
+    impact = (
+        (parent_data.get("TransportImpactPerKgByTarget") or {}).get(target_location_code)
+        if target_location_code
+        else None
+    ) or (parent_data.get("TransportImpactPerKgByTarget") or {}).get("default")
+    return impact if isinstance(impact, dict) else {}

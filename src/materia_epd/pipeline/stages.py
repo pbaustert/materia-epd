@@ -17,6 +17,8 @@ from materia_epd.metrics.averaging import (
     average_material_properties,
     market_weighted_impacts,
 )
+from materia_epd.geo.locations import get_transport_impact_per_kg
+from materia_epd.geo.locations import get_location_attribute
 
 
 class PipelineStage(Protocol):
@@ -258,6 +260,92 @@ class ComputeMarketAverageImpactsStage:
             matched_countries=len(ctx.market_impacts),
             unmatched_epds=len(ctx.unmatched_epds),
         )
+
+
+class DeriveTransportA4ImpactsStage:
+    name = "derive-transport-a4-impacts"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_gwps is None:
+            return
+
+        mass = (ctx.avg_properties or {}).get("mass")
+        if not isinstance(mass, (int, float)):
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Skipped A4 transport derivation because mass is unavailable.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            return
+
+        target_location = ctx.process.loc
+        grouped_market = self._aggregate_market_by_transport_location(
+            ctx.process.market or {}, target_location
+        )
+        weighted_impacts_per_kg: dict[str, float] = {}
+        total_share = 0.0
+        missing_locations: list[str] = []
+        for source_location, share in grouped_market.items():
+            impacts_per_kg = get_transport_impact_per_kg(source_location, target_location)
+            if not impacts_per_kg:
+                missing_locations.append(source_location)
+                continue
+
+            total_share += share
+            for indicator, value in impacts_per_kg.items():
+                weighted_impacts_per_kg[indicator] = (
+                    weighted_impacts_per_kg.get(indicator, 0.0) + share * value
+                )
+
+        if total_share <= 0:
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Skipped A4 transport derivation because no transport factors were available for market entries.",  # noqa: E501
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+                missing_locations=missing_locations,
+            )
+            return
+
+        for indicator, weighted_value in weighted_impacts_per_kg.items():
+            per_kg = weighted_value / total_share
+            a4_value = per_kg * mass
+            indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules["A4"] = round(a4_value, 6)
+
+        ctx.add_diagnostic(
+            kind="info",
+            message="Derived A4 transport impacts from mass and market shares.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            mass=mass,
+            target_location=target_location,
+            grouped_market=grouped_market,
+            missing_locations=missing_locations,
+        )
+
+    @staticmethod
+    def _aggregate_market_by_transport_location(
+        market: dict[str, float], target_location: str | None
+    ) -> dict[str, float]:
+        grouped_market: dict[str, float] = {}
+        for source_location, share in market.items():
+            if source_location == "RoW":
+                continue
+
+            if target_location and source_location == target_location:
+                grouped_key = target_location
+            else:
+                try:
+                    parent = get_location_attribute(source_location, "Parent")
+                except Exception:
+                    parent = None
+                grouped_key = parent or source_location
+
+            grouped_market[grouped_key] = grouped_market.get(grouped_key, 0.0) + share
+
+        return grouped_market
 
 
 class BuildReportStage:

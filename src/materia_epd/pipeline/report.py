@@ -100,6 +100,15 @@ def detect_declared_unit(avg_physical: dict) -> str | None:
     )
 
 
+def as_float(value: Any, default: float = 0.0) -> float:
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def build_impact_comparison_table(report: Dict[str, Any]) -> pd.DataFrame:
     prev, cur = report.get("previous", {}).get("impacts", {}), report.get(
         "average", {}
@@ -107,7 +116,8 @@ def build_impact_comparison_table(report: Dict[str, Any]) -> pd.DataFrame:
     rows = []
     for ind, cv in cur.items():
         for mod in sorted(set(prev.get(ind, {})) | set(cv)):
-            p, c = float(prev.get(ind, {}).get(mod, 0.0)), float(cv.get(mod, 0.0))
+            p = as_float(prev.get(ind, {}).get(mod), default=0.0)
+            c = as_float(cv.get(mod), default=0.0)
             rows.append(
                 {
                     "Indicator": ind,

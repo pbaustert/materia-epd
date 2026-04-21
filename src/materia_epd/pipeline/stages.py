@@ -331,6 +331,7 @@ class DeriveTransportA4C2ImpactsStage:
             per_kg = weighted_value / total_share
             a4_value = per_kg * mass
             indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules.setdefault("C1", 0.0)
             indicator_modules["A4"] = round(a4_value, 6)
 
         local_c2_impacts = (
@@ -341,6 +342,7 @@ class DeriveTransportA4C2ImpactsStage:
         for indicator, per_kg in local_c2_impacts.items():
             c2_value = per_kg * mass
             indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules.setdefault("C1", 0.0)
             indicator_modules["C2"] = round(c2_value, 6)
 
         ctx.add_diagnostic(

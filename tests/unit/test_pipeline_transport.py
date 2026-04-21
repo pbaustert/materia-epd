@@ -68,6 +68,6 @@ def test_derive_transport_a4_c2_impacts_market_weighted(monkeypatch):
     assert ctx.avg_gwps["Climate change-Total"]["A4"] == 0.261467
     assert ctx.avg_gwps["Climate change-Fossil"]["A4"] == 0.261467
     assert ctx.avg_gwps["Climate change-Total"]["C1"] == 0.0
-    assert ctx.avg_gwps["Climate change-Fossil"]["C1"] == 0.0
+    assert "C1" not in ctx.avg_gwps["Climate change-Fossil"]
     assert ctx.avg_gwps["Climate change-Total"]["C2"] == 0.0418
     assert ctx.avg_gwps["Climate change-Fossil"]["C2"] == 0.0418

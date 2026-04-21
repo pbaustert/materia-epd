@@ -78,6 +78,7 @@ def flatten_impacts(impacts: list[dict]) -> dict:
     for imp in impacts:
         n, v = imp["name"], imp["values"]
         row[f"{n}_A1-A3"] = v.get("A1-A3") or 0
+        row[f"{n}_A4"] = v.get("A4") or 0
         row[f"{n}_C1234"] = sum(v.get(k) or 0 for k in ("C1", "C2", "C3", "C4"))
         row[f"{n}_D"] = v.get("D") or 0
     return row
@@ -115,8 +116,19 @@ def build_impact_comparison_table(report: Dict[str, Any]) -> pd.DataFrame:
         "average", {}
     ).get("impacts", {})
     rows = []
-    for ind, cv in cur.items():
-        for mod in sorted(set(prev.get(ind, {})) | set(cv)):
+    indicators = sorted(set(prev) | set(cur))
+    module_order = ["A1-A3", "A4", "C1", "C2", "C3", "C4", "D"]
+    for ind in indicators:
+        pv = prev.get(ind, {})
+        cv = cur.get(ind, {})
+        modules = set(pv) | set(cv) | {"A4"}
+        sorted_modules = sorted(
+            modules,
+            key=lambda m: (
+                (module_order.index(m), m) if m in module_order else (999, m)
+            ),
+        )
+        for mod in sorted_modules:
             p = as_float(prev.get(ind, {}).get(mod), default=0.0)
             c = as_float(cv.get(mod), default=0.0)
             rows.append(
@@ -423,15 +435,14 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
                 return value
         return "n/a"
 
-    c.drawString(
-        40,
-        page_h - 78,
-        f"Product names (EN/FR/DE): {_format_lang_name('en')} / {_format_lang_name('fr')} / {_format_lang_name('de')}",
-    )
-    c.drawString(40, page_h - 94, f"HS code: {pm.get('hs_code', 'n/a')}")
-    c.drawString(40, page_h - 110, "HS Categories:")
+    c.drawString(40, page_h - 78, "Product names:")
+    c.drawString(60, page_h - 94, f"EN: {_format_lang_name('en')}")
+    c.drawString(60, page_h - 110, f"FR: {_format_lang_name('fr')}")
+    c.drawString(60, page_h - 126, f"DE: {_format_lang_name('de')}")
+    c.drawString(40, page_h - 142, f"HS code: {pm.get('hs_code', 'n/a')}")
+    c.drawString(40, page_h - 158, "HS Categories:")
 
-    y = page_h - 124
+    y = page_h - 172
     c.setFont("Helvetica", 9)
 
     max_cat_lines = 4
@@ -621,7 +632,17 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
     axes = axes.flatten()
     for ax, ind in zip(axes, inds):
         cols = [f"{ind}_A1-A3", f"{ind}_A4", f"{ind}_C1234", f"{ind}_D"]
-        vals = [impact_series(df, c) for c in cols]
+        vals = []
+        for c in cols:
+            series = impact_series(df, c)
+            avg_value = df_avg[c].iloc[0] if c in df_avg else 0.0
+            # A4 can be derived at aggregate level and may not exist in source EPD rows.
+            # In that case, show the derived aggregate value in the plot instead of a zero-only box.
+            if c.endswith("_A4") and (
+                len(series) == 0 or (series.abs() <= 1e-12).all()
+            ) and abs(avg_value) > 1e-12:
+                series = pd.Series([avg_value])
+            vals.append(series)
         box_vals = [v for v in vals if len(v) > 0]
         box_pos = [p for p, v in zip([1, 3, 5, 7], vals) if len(v) > 0]
         if box_vals:

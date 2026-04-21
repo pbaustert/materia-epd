@@ -262,8 +262,27 @@ class ComputeMarketAverageImpactsStage:
         )
 
 
-class DeriveTransportA4ImpactsStage:
-    name = "derive-transport-a4-impacts"
+class SetAverageC1ToZeroStage:
+    name = "set-average-c1-to-zero"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_gwps is None:
+            return
+
+        for indicator_modules in ctx.avg_gwps.values():
+            indicator_modules["C1"] = 0.0
+
+        ctx.add_diagnostic(
+            kind="info",
+            message="Set averaged C1 impacts to zero.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            indicators=len(ctx.avg_gwps),
+        )
+
+
+class DeriveTransportA4C2ImpactsStage:
+    name = "derive-transport-a4-c2-impacts"
 
     def run(self, ctx: EpdPipelineContext) -> None:
         if ctx.avg_gwps is None:
@@ -273,7 +292,7 @@ class DeriveTransportA4ImpactsStage:
         if not isinstance(mass, (int, float)):
             ctx.add_diagnostic(
                 kind="warning",
-                message="Skipped A4 transport derivation because mass is unavailable.",
+                message="Skipped A4/C2 transport derivation because mass is unavailable.",
                 stage=self.name,
                 process_uuid=ctx.process.uuid,
             )
@@ -314,15 +333,26 @@ class DeriveTransportA4ImpactsStage:
             indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
             indicator_modules["A4"] = round(a4_value, 6)
 
+        local_c2_impacts = (
+            get_transport_impact_per_kg(target_location, target_location)
+            if target_location
+            else {}
+        )
+        for indicator, per_kg in local_c2_impacts.items():
+            c2_value = per_kg * mass
+            indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules["C2"] = round(c2_value, 6)
+
         ctx.add_diagnostic(
             kind="info",
-            message="Derived A4 transport impacts from mass and market shares.",
+            message="Derived A4/C2 transport impacts from mass and location data.",
             stage=self.name,
             process_uuid=ctx.process.uuid,
             mass=mass,
             target_location=target_location,
             grouped_market=grouped_market,
             missing_locations=missing_locations,
+            local_c2_available=bool(local_c2_impacts),
         )
 
     @staticmethod

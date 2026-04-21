@@ -9,7 +9,8 @@ from materia_epd.pipeline.stages import (
     ValidateMassConversionStage,
     ComputeAverageImpactsStage,
     ComputeMarketAverageImpactsStage,
-    DeriveTransportA4ImpactsStage,
+    SetAverageC1ToZeroStage,
+    DeriveTransportA4C2ImpactsStage,
     ValidateAveragedImpactsStage,
     BuildReportStage,
 )
@@ -26,7 +27,8 @@ class RecipeFactory:
                 ComputeAveragePropertiesStage(),
                 ValidateMassConversionStage(),
                 ComputeAverageImpactsStage(),
-                DeriveTransportA4ImpactsStage(),
+                SetAverageC1ToZeroStage(),
+                DeriveTransportA4C2ImpactsStage(),
                 ValidateAveragedImpactsStage(),
                 BuildReportStage(),
             ]
@@ -38,7 +40,8 @@ class RecipeFactory:
                 ComputeAveragePropertiesStage(),
                 ValidateMassConversionStage(),
                 ComputeMarketAverageImpactsStage(),
-                DeriveTransportA4ImpactsStage(),
+                SetAverageC1ToZeroStage(),
+                DeriveTransportA4C2ImpactsStage(),
                 ValidateAveragedImpactsStage(),
                 BuildReportStage(),
             ]

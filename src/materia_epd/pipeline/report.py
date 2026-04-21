@@ -121,7 +121,7 @@ def build_impact_comparison_table(report: Dict[str, Any]) -> pd.DataFrame:
     for ind in indicators:
         pv = prev.get(ind, {})
         cv = cur.get(ind, {})
-        modules = set(pv) | set(cv) | {"A4"}
+        modules = set(pv) | set(cv) | {"A4", "C1", "C2"}
         sorted_modules = sorted(
             modules,
             key=lambda m: (

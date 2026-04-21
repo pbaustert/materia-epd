@@ -633,12 +633,12 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
     for ax, ind in zip(axes, inds):
         cols = [f"{ind}_A1-A3", f"{ind}_A4", f"{ind}_C1234", f"{ind}_D"]
         vals = []
-        for c in cols:
-            series = impact_series(df, c)
-            avg_value = df_avg[c].iloc[0] if c in df_avg else 0.0
+        for col in cols:
+            series = impact_series(df, col)
+            avg_value = df_avg[col].iloc[0] if col in df_avg else 0.0
             # A4 can be derived at aggregate level and may not exist in source EPD rows.
             # In that case, show the derived aggregate value in the plot instead of a zero-only box.
-            if c.endswith("_A4") and (
+            if col.endswith("_A4") and (
                 len(series) == 0 or (series.abs() <= 1e-12).all()
             ) and abs(avg_value) > 1e-12:
                 series = pd.Series([avg_value])
@@ -649,7 +649,7 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
             ax.boxplot(box_vals, positions=box_pos, widths=0.6)
         ax.scatter(
             [1, 3, 5, 7],
-            [df_avg[c].iloc[0] if c in df_avg else 0.0 for c in cols],
+            [df_avg[col].iloc[0] if col in df_avg else 0.0 for col in cols],
             color="red",
             s=40,
             zorder=3,

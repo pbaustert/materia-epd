@@ -61,3 +61,24 @@ def test_get_location_color(monkeypatch):
         "hex": "#112233",
         "rgba": [0.07, 0.13, 0.2, 0.2],
     }
+
+
+def test_get_transport_impact_per_kg():
+    data = {
+        "LUX": {
+            "TransportImpactPerKgByTarget": {"LUX": {"Climate change-Total": 0.0209}},
+        },
+        "FRA": {"Parent": "Western Europe"},
+        "Western Europe": {
+            "TransportImpactPerKgByTarget": {
+                "LUX": {"Climate change-Total": 0.0434},
+            },
+        },
+    }
+    loc.get_location_data = lambda code: data[code]
+
+    local = loc.get_transport_impact_per_kg("LUX", "LUX")
+    assert local["Climate change-Total"] == 0.0209
+
+    from_parent = loc.get_transport_impact_per_kg("FRA", "LUX")
+    assert from_parent == {"Climate change-Total": 0.0434}

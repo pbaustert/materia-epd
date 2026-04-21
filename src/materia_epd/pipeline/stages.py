@@ -188,12 +188,10 @@ class ValidateMassConversionStage:
         if dec_unit == "mass":
             return
 
-        required_prop = self._REQUIRED_PROP.get(dec_unit)
-        if required_prop is None or dec_unit not in ctx.avg_properties:
-            return
-
         mass = ctx.avg_properties.get("mass")
+        required_prop = self._REQUIRED_PROP.get(dec_unit)
         prop_value = ctx.avg_properties.get(required_prop)
+        
         if mass is None or prop_value is None:
             ctx.add_diagnostic(
                 kind="error",

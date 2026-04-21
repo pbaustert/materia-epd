@@ -11,6 +11,7 @@ import pandas as pd
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyBboxPatch, PathPatch
 from matplotlib.path import Path as MplPath
+from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -124,6 +125,9 @@ def build_impact_comparison_table(report: Dict[str, Any]) -> pd.DataFrame:
                     "Module": mod,
                     "Previous": p,
                     "Current": c,
+                    "RelativeChange": 0.0
+                    if abs(p) <= 1e-12
+                    else ((c - p) / abs(p)),
                     "Direction": "no-change"
                     if abs(c - p) <= 1e-12
                     else ("increase" if c > p else "decrease"),
@@ -371,6 +375,11 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
     df_phys_avg = pd.DataFrame([report["average"]["physical"]])
     declared_unit = detect_declared_unit(report["average"]["physical"])
 
+    def impact_series(frame: pd.DataFrame, column: str) -> pd.Series:
+        if column not in frame:
+            return pd.Series(dtype=float)
+        return frame[column].dropna()
+
     p = report["meta"]["pipeline"]
     fig, ax = plt.subplots(figsize=(6, 3.2))
     ax.bar(["Initial"], [p["initial_epds"]], color="#4C78A8", label="Initial")
@@ -406,10 +415,23 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
     # ---- top text block ----
     c.setFont("Helvetica", 11)
     c.drawString(40, page_h - 62, f"Product: {pm.get('name', 'Unknown')}")
-    c.drawString(40, page_h - 78, f"HS code: {pm.get('hs_code', 'n/a')}")
-    c.drawString(40, page_h - 94, "HS Categories:")
+    product_names = pm.get("names_by_language", {}) or {}
 
-    y = page_h - 108
+    def _format_lang_name(lang: str) -> str:
+        for key, value in product_names.items():
+            if key.lower().startswith(lang):
+                return value
+        return "n/a"
+
+    c.drawString(
+        40,
+        page_h - 78,
+        f"Product names (EN/FR/DE): {_format_lang_name('en')} / {_format_lang_name('fr')} / {_format_lang_name('de')}",
+    )
+    c.drawString(40, page_h - 94, f"HS code: {pm.get('hs_code', 'n/a')}")
+    c.drawString(40, page_h - 110, "HS Categories:")
+
+    y = page_h - 124
     c.setFont("Helvetica", 9)
 
     max_cat_lines = 4
@@ -598,13 +620,21 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
     fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     axes = axes.flatten()
     for ax, ind in zip(axes, inds):
-        cols = [f"{ind}_A1-A3", f"{ind}_C1234", f"{ind}_D"]
-        ax.boxplot([df[c].dropna() for c in cols], positions=[1, 3, 5], widths=0.6)
+        cols = [f"{ind}_A1-A3", f"{ind}_A4", f"{ind}_C1234", f"{ind}_D"]
+        vals = [impact_series(df, c) for c in cols]
+        box_vals = [v for v in vals if len(v) > 0]
+        box_pos = [p for p, v in zip([1, 3, 5, 7], vals) if len(v) > 0]
+        if box_vals:
+            ax.boxplot(box_vals, positions=box_pos, widths=0.6)
         ax.scatter(
-            [1, 3, 5], [df_avg[c].iloc[0] for c in cols], color="red", s=40, zorder=3
+            [1, 3, 5, 7],
+            [df_avg[c].iloc[0] if c in df_avg else 0.0 for c in cols],
+            color="red",
+            s=40,
+            zorder=3,
         )
-        ax.set_xticks([1, 3, 5])
-        ax.set_xticklabels(["A1–A3", "C1–C4", "D"])
+        ax.set_xticks([1, 3, 5, 7])
+        ax.set_xticklabels(["A1–A3", "A4", "C1–C4", "D"])
         ax.set_title(names[ind], fontsize=10)
         ax.set_ylabel("kg CO₂e per declared unit", fontsize=8)
         ax.grid(axis="y", linestyle="--", alpha=0.25)
@@ -641,7 +671,7 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
         t.textLine(line.strip() + ("." if not line.endswith(".") else ""))
     c.drawText(t)
 
-    headers, xcols = ["Indicator", "Module", "Previous", "Current", "Direction"], [
+    headers, xcols = ["Indicator", "Module", "Previous", "Current", "Change"], [
         40,
         230,
         290,
@@ -667,7 +697,18 @@ def draw_report(report: Dict[str, Any], out_path: Path, report_uuid: str):
         c.drawString(230, y, str(row["Module"]))
         c.drawRightString(342, y, f"{row['Previous']:.3g}")
         c.drawRightString(420, y, f"{row['Current']:.3g}")
-        c.drawString(445, y, str(row["Direction"]))
+        rel_change = float(row.get("RelativeChange", 0.0))
+        if abs(row["Current"] - row["Previous"]) <= 1e-12:
+            icon, color = "→", "#6B7280"
+        elif row["Current"] > row["Previous"]:
+            icon = "↑"
+            color = "#DC2626" if rel_change > 0.1 else "#F59E0B"
+        else:
+            icon = "↓"
+            color = "#16A34A" if rel_change < -0.1 else "#10B981"
+        c.setFillColor(HexColor(color))
+        c.drawString(445, y, icon)
+        c.setFillColor(HexColor("#000000"))
         y -= 14
     c.save()
 

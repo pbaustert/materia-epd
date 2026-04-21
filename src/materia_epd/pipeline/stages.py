@@ -163,6 +163,45 @@ class ComputeAveragePropertiesStage:
         )
 
 
+class ValidateMassConversionStage:
+    name = "validate-mass-conversion"
+
+    _REQUIRED_PROP = {
+        "volume": "gross_density",
+        "surface": "grammage",
+        "length": "linear_density",
+        "unit_count": "weight_per_piece",
+    }
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_properties is None:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Mass conversion validation failed.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            ctx.stop(success=False)
+            return
+
+        dec_unit = ctx.active_dec_unit
+        if dec_unit == "mass":
+            return
+
+        mass = ctx.avg_properties.get("mass")
+        required_prop = self._REQUIRED_PROP.get(dec_unit)
+        prop_value = ctx.avg_properties.get(required_prop)
+        
+        if mass is None or prop_value is None:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Mass conversion validation failed.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            ctx.stop(success=False)
+
+
 class ComputeAverageImpactsStage:
     name = "compute-average-impacts"
 

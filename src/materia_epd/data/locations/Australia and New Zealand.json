@@ -10,5 +10,20 @@
     "NFK",
     "NZL",
     "Australia and New Zealand"
-  ]
+  ],
+  "ColorHex": "#D6DB63",
+  "ColorRGBA": [
+    0.84,
+    0.86,
+    0.39,
+    0.2
+  ],
+  "TransportImpactPerKgByTarget": {
+    "LUX": {
+      "Climate change-Total": 0.3731,
+      "Climate change-Fossil": 0.3731,
+      "Climate change-Biogenic": 0.0,
+      "Climate change-Land use and land use change": 0.0
+    }
+  }
 }

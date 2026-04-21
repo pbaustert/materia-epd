@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Micronesia",
   "Children": null,
-  "comtradeID": 584
+  "comtradeID": 584,
+  "ColorHex": "#BE63DB",
+  "ColorRGBA": [
+    0.74,
+    0.39,
+    0.86,
+    0.2
+  ]
 }

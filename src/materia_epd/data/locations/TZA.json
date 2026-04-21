@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Eastern Africa",
   "Children": null,
-  "comtradeID": 834
+  "comtradeID": 834,
+  "ColorHex": "#DB63A7",
+  "ColorRGBA": [
+    0.86,
+    0.39,
+    0.66,
+    0.2
+  ]
 }

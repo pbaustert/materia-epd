@@ -3,5 +3,12 @@
   "Name": "RoW",
   "Class": "Country",
   "Parent": "GLO",
-  "Children": null
+  "Children": null,
+  "ColorHex": "#999999",
+  "ColorRGBA": [
+    0.6,
+    0.6,
+    0.6,
+    0.18
+  ]
 }

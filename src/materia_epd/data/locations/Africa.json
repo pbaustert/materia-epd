@@ -69,5 +69,12 @@
     "SLE",
     "TGO",
     "Africa"
+  ],
+  "ColorHex": "#DBB563",
+  "ColorRGBA": [
+    0.86,
+    0.71,
+    0.39,
+    0.2
   ]
 }

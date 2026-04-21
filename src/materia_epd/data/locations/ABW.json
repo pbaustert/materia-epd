@@ -4,5 +4,12 @@
   "Class": "Country",
   "Parent": "Caribbean",
   "Children": null,
-  "comtradeID": 533
+  "comtradeID": 533,
+  "ColorHex": "#63DB76",
+  "ColorRGBA": [
+    0.39,
+    0.86,
+    0.46,
+    0.2
+  ]
 }

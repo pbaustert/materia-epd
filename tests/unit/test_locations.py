@@ -49,3 +49,36 @@ def test_locations_full_coverage(monkeypatch):
     ).get(code)
 
     assert loc.escalate_location_set({"A", "B", "C"}) == {"Achild", "Bchild"}
+
+
+def test_get_location_color(monkeypatch):
+    loc.get_location_data = lambda code: {
+        "ColorHex": "#112233",
+        "ColorRGBA": [0.07, 0.13, 0.2, 0.2],
+    }
+
+    assert loc.get_location_color("XXX") == {
+        "hex": "#112233",
+        "rgba": [0.07, 0.13, 0.2, 0.2],
+    }
+
+
+def test_get_transport_impact_per_kg():
+    data = {
+        "LUX": {
+            "TransportImpactPerKgByTarget": {"LUX": {"Climate change-Total": 0.0209}},
+        },
+        "FRA": {"Parent": "Western Europe"},
+        "Western Europe": {
+            "TransportImpactPerKgByTarget": {
+                "LUX": {"Climate change-Total": 0.0434},
+            },
+        },
+    }
+    loc.get_location_data = lambda code: data[code]
+
+    local = loc.get_transport_impact_per_kg("LUX", "LUX")
+    assert local["Climate change-Total"] == 0.0209
+
+    from_parent = loc.get_transport_impact_per_kg("FRA", "LUX")
+    assert from_parent == {"Climate change-Total": 0.0434}

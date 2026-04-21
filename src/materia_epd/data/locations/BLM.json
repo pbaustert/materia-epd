@@ -1,8 +1,15 @@
 {
   "ISO3": "BLM",
-  "Name": "Saint Barthélemy",
+  "Name": "Saint Barth\u00e9lemy",
   "Class": "Country",
   "Parent": "Caribbean",
   "Children": null,
-  "comtradeID": 652
+  "comtradeID": 652,
+  "ColorHex": "#DB63B8",
+  "ColorRGBA": [
+    0.86,
+    0.39,
+    0.72,
+    0.2
+  ]
 }

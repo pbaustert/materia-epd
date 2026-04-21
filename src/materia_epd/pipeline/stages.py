@@ -17,6 +17,8 @@ from materia_epd.metrics.averaging import (
     average_material_properties,
     market_weighted_impacts,
 )
+from materia_epd.geo.locations import get_transport_impact_per_kg
+from materia_epd.geo.locations import get_location_attribute
 
 
 class PipelineStage(Protocol):
@@ -163,6 +165,45 @@ class ComputeAveragePropertiesStage:
         )
 
 
+class ValidateMassConversionStage:
+    name = "validate-mass-conversion"
+
+    _REQUIRED_PROP = {
+        "volume": "gross_density",
+        "surface": "grammage",
+        "length": "linear_density",
+        "unit_count": "weight_per_piece",
+    }
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_properties is None:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Mass conversion validation failed.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            ctx.stop(success=False)
+            return
+
+        dec_unit = ctx.active_dec_unit
+        if dec_unit == "mass":
+            return
+
+        mass = ctx.avg_properties.get("mass")
+        required_prop = self._REQUIRED_PROP.get(dec_unit)
+        prop_value = ctx.avg_properties.get(required_prop)
+        
+        if mass is None or prop_value is None:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Mass conversion validation failed.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            ctx.stop(success=False)
+
+
 class ComputeAverageImpactsStage:
     name = "compute-average-impacts"
 
@@ -221,12 +262,129 @@ class ComputeMarketAverageImpactsStage:
         )
 
 
+class SetAverageC1ToZeroStage:
+    name = "set-average-c1-to-zero"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_gwps is None:
+            return
+
+        for indicator_modules in ctx.avg_gwps.values():
+            indicator_modules["C1"] = 0.0
+
+        ctx.add_diagnostic(
+            kind="info",
+            message="Set averaged C1 impacts to zero.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            indicators=len(ctx.avg_gwps),
+        )
+
+
+class DeriveTransportA4C2ImpactsStage:
+    name = "derive-transport-a4-c2-impacts"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        if ctx.avg_gwps is None:
+            return
+
+        mass = (ctx.avg_properties or {}).get("mass")
+        if not isinstance(mass, (int, float)):
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Skipped A4/C2 transport derivation because mass is unavailable.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            return
+
+        target_location = ctx.process.loc
+        grouped_market = self._aggregate_market_by_transport_location(
+            ctx.process.market or {}, target_location
+        )
+        weighted_impacts_per_kg: dict[str, float] = {}
+        total_share = 0.0
+        missing_locations: list[str] = []
+        for source_location, share in grouped_market.items():
+            impacts_per_kg = get_transport_impact_per_kg(source_location, target_location)
+            if not impacts_per_kg:
+                missing_locations.append(source_location)
+                continue
+
+            total_share += share
+            for indicator, value in impacts_per_kg.items():
+                weighted_impacts_per_kg[indicator] = (
+                    weighted_impacts_per_kg.get(indicator, 0.0) + share * value
+                )
+
+        if total_share <= 0:
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Skipped A4 transport derivation because no transport factors were available for market entries.",  # noqa: E501
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+                missing_locations=missing_locations,
+            )
+            return
+
+        for indicator, weighted_value in weighted_impacts_per_kg.items():
+            per_kg = weighted_value / total_share
+            a4_value = per_kg * mass
+            indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules["A4"] = round(a4_value, 6)
+
+        local_c2_impacts = (
+            get_transport_impact_per_kg(target_location, target_location)
+            if target_location
+            else {}
+        )
+        for indicator, per_kg in local_c2_impacts.items():
+            c2_value = per_kg * mass
+            indicator_modules = ctx.avg_gwps.setdefault(indicator, {})
+            indicator_modules["C2"] = round(c2_value, 6)
+
+        ctx.add_diagnostic(
+            kind="info",
+            message="Derived A4/C2 transport impacts from mass and location data.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            mass=mass,
+            target_location=target_location,
+            grouped_market=grouped_market,
+            missing_locations=missing_locations,
+            local_c2_available=bool(local_c2_impacts),
+        )
+
+    @staticmethod
+    def _aggregate_market_by_transport_location(
+        market: dict[str, float], target_location: str | None
+    ) -> dict[str, float]:
+        grouped_market: dict[str, float] = {}
+        for source_location, share in market.items():
+            if source_location == "RoW":
+                continue
+
+            if target_location and source_location == target_location:
+                grouped_key = target_location
+            else:
+                try:
+                    parent = get_location_attribute(source_location, "Parent")
+                except Exception:
+                    parent = None
+                grouped_key = parent or source_location
+
+            grouped_market[grouped_key] = grouped_market.get(grouped_key, 0.0) + share
+
+        return grouped_market
+
+
 class BuildReportStage:
     name = "build-report"
 
     def run(self, ctx: EpdPipelineContext) -> None:
         ctx.report = build_report(
             report_uuid=ctx.process.uuid,
+            process=ctx.process,
             epd_entries=ctx.filtered_epds,
             avg_impacts=ctx.avg_gwps,
             avg_physical=ctx.avg_properties,

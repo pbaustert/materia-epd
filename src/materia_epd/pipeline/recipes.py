@@ -26,6 +26,7 @@ class RecipeFactory:
                 ComputeAveragePropertiesStage(),
                 ValidateMassConversionStage(),
                 ComputeAverageImpactsStage(),
+                DeriveTransportA4ImpactsStage(),
                 ValidateAveragedImpactsStage(),
                 BuildReportStage(),
             ]

@@ -22,6 +22,12 @@ class EpdPipelineContext:
     avg_properties: dict[str, Any] | None = None
     avg_gwps: dict[str, Any] | None = None
     report: Any | None = None
+    assembled_components: list[dict[str, Any]] = field(default_factory=list)
+    component_reports: dict[str, Any] = field(default_factory=dict)
+    component_impacts: dict[str, dict[str, dict[str, float]]] = field(
+        default_factory=dict
+    )
+    results_registry: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     used_mass_fallback: bool = False
     recipe_type: str | None = None

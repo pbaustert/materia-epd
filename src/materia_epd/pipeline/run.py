@@ -40,6 +40,10 @@ def pipeline_has_outputs(ctx: EpdPipelineContext) -> bool:
 
 
 def print_pipeline_summary(ctx: EpdPipelineContext) -> None:
+    requested = len(ctx.process.matches.get("uuids", []))
+    if not requested:
+        requested = len(ctx.process.matches.get("components", []))
+
     # Decide base status color by success, override to yellow if fallback used
     status_color = "green" if ctx.success else "red"
     if ctx.used_mass_fallback:
@@ -59,7 +63,7 @@ def print_pipeline_summary(ctx: EpdPipelineContext) -> None:
 
     table.add_row("Status", status_text)
     table.add_row("Recipe type", ctx.recipe_type)
-    table.add_row("Requested", str(len(ctx.process.matches["uuids"])))
+    table.add_row("Requested", str(requested))
     table.add_row("Missing", str(len(ctx.missing_epds)))
     table.add_row("Rejected", str(len(ctx.rejected_epds)))
     table.add_row("Unmatched", str(len(ctx.unmatched_epds)))
@@ -77,7 +81,8 @@ def run_materia(
 ) -> None:
     epds = list(gen_epds(path_to_epd_folder / "processes", logger))
     logger.info("Parsed XML EPDs", count=len(epds))
-
+    results_registry: dict[str, dict] = {}
+    processes = []
     for path, root in gen_xml_objects(path_to_gen_folder / "processes", logger):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
@@ -85,10 +90,10 @@ def run_materia(
         process.get_hs_class()
         process.get_market()
         process.get_matches()
+        if process.matches:
+            processes.append(process)
 
-        if not process.matches:
-            continue
-
+    def _run_process(process: IlcdProcess) -> EpdPipelineContext:
         ctx = EpdPipelineContext(
             process=process,
             matches=process.matches,
@@ -96,6 +101,7 @@ def run_materia(
             active_material_kwargs=process.material_kwargs,
             active_dec_unit=process.dec_unit,
             recipe_type=process.matches.get("type"),
+            results_registry=results_registry,
         )
 
         pipeline = Pipeline(RecipeFactory().build(ctx))
@@ -104,8 +110,56 @@ def run_materia(
         # log_pipeline_diagnostics(logger, ctx)
 
         if pipeline_has_outputs(ctx):
+            results_registry[process.uuid] = {
+                "avg_gwps": ctx.avg_gwps,
+                "avg_properties": ctx.avg_properties,
+                "report": ctx.report,
+            }
             process.material = Material(**ctx.avg_properties)
             process.write_process(ctx.avg_gwps, output_path)
             process.write_flow(ctx.avg_properties, output_path)
             write_report(ctx.report, output_path, process.uuid)
             draw_report(ctx.report, output_path, process.uuid)
+        return ctx
+
+    base_processes = [
+        p for p in processes if p.matches.get("type") != "assembled"
+    ]
+    assembled_queue = [
+        p for p in processes if p.matches.get("type") == "assembled"
+    ]
+
+    for process in base_processes:
+        _run_process(process)
+
+    while assembled_queue:
+        progressed = False
+        deferred = []
+        for process in assembled_queue:
+            ctx = _run_process(process)
+            if pipeline_has_outputs(ctx):
+                progressed = True
+                continue
+
+            missing_dependency_error = any(
+                d.get("stage") == "resolve-component-results" and d.get("kind") == "error"
+                for d in ctx.diagnostics
+            )
+            if missing_dependency_error:
+                deferred.append(process)
+                continue
+
+            progressed = True
+
+        if not deferred:
+            break
+
+        if not progressed:
+            unresolved = [p.uuid for p in deferred]
+            logger.warning(
+                "Assembled processes unresolved due to missing component outputs.",
+                processes=unresolved,
+            )
+            break
+
+        assembled_queue = deferred

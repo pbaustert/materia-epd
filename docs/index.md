@@ -26,4 +26,3 @@ Module Reference <api/modules>
 * {ref}`genindex`
 * {ref}`modindex`
 * {ref}`search`
-

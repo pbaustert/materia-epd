@@ -9,6 +9,10 @@ from materia_epd.pipeline.stages import (
     ValidateMassConversionStage,
     ComputeAverageImpactsStage,
     ComputeMarketAverageImpactsStage,
+    LoadAssembledComponentsStage,
+    ResolveComponentResultsStage,
+    AggregateComponentImpactsStage,
+    AggregateComponentPropertiesStage,
     SetAverageC1ToZeroStage,
     DeriveTransportA4C2ImpactsStage,
     ValidateAveragedImpactsStage,
@@ -40,6 +44,17 @@ class RecipeFactory:
                 ComputeAveragePropertiesStage(),
                 ValidateMassConversionStage(),
                 ComputeMarketAverageImpactsStage(),
+                SetAverageC1ToZeroStage(),
+                DeriveTransportA4C2ImpactsStage(),
+                ValidateAveragedImpactsStage(),
+                BuildReportStage(),
+            ]
+        if ctx.matches.get("type") == "assembled":
+            return [
+                LoadAssembledComponentsStage(),
+                ResolveComponentResultsStage(),
+                AggregateComponentImpactsStage(),
+                AggregateComponentPropertiesStage(),
                 SetAverageC1ToZeroStage(),
                 DeriveTransportA4C2ImpactsStage(),
                 ValidateAveragedImpactsStage(),

@@ -1,8 +1,8 @@
 from typing import Protocol
+from collections import defaultdict
 
 from materia_epd.pipeline.context import EpdPipelineContext
 from materia_epd.core.constants import _TOL_ABS
-from materia_epd.pipeline.report import build_report
 from materia_epd.epd.filters import (
     UUIDFilter,
     UnitConformityFilter,
@@ -281,6 +281,207 @@ class SetAverageC1ToZeroStage:
         )
 
 
+class LoadAssembledComponentsStage:
+    name = "load-assembled-components"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        components = (ctx.matches or {}).get("components")
+        if not isinstance(components, list) or not components:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Assembled pipeline requires a non-empty components list.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+            )
+            ctx.stop(success=False)
+            return
+
+        normalized_components: list[dict[str, float | str]] = []
+        for idx, component in enumerate(components):
+            process_uuid = component.get("process_uuid")
+            quantity = component.get("quantity")
+            unit = component.get("unit")
+
+            if not process_uuid or not isinstance(process_uuid, str):
+                ctx.add_diagnostic(
+                    kind="error",
+                    message="Assembled component is missing a valid process_uuid.",
+                    stage=self.name,
+                    process_uuid=ctx.process.uuid,
+                    component_index=idx,
+                )
+                ctx.stop(success=False)
+                return
+
+            if not isinstance(quantity, (int, float)) or quantity <= 0:
+                ctx.add_diagnostic(
+                    kind="error",
+                    message="Assembled component quantity must be a positive number.",
+                    stage=self.name,
+                    process_uuid=ctx.process.uuid,
+                    component_index=idx,
+                    component_process_uuid=process_uuid,
+                    quantity=quantity,
+                )
+                ctx.stop(success=False)
+                return
+
+            if unit is not None and not isinstance(unit, str):
+                ctx.add_diagnostic(
+                    kind="error",
+                    message="Assembled component unit must be a string when provided.",
+                    stage=self.name,
+                    process_uuid=ctx.process.uuid,
+                    component_index=idx,
+                    component_process_uuid=process_uuid,
+                )
+                ctx.stop(success=False)
+                return
+
+            normalized_components.append(
+                {
+                    "process_uuid": process_uuid,
+                    "quantity": float(quantity),
+                    "unit": unit or "mass",
+                }
+            )
+
+        ctx.assembled_components = normalized_components
+        ctx.add_diagnostic(
+            kind="info",
+            message="Assembled components loaded.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            components=len(ctx.assembled_components),
+        )
+
+
+class ResolveComponentResultsStage:
+    name = "resolve-component-results"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        missing_components: list[str] = []
+        resolved: dict[str, dict[str, dict[str, float]]] = {}
+        reports: dict[str, dict] = {}
+
+        for component in ctx.assembled_components:
+            component_uuid = component["process_uuid"]
+            result = ctx.results_registry.get(component_uuid, {})
+            impacts = result.get("avg_gwps")
+            if not isinstance(impacts, dict):
+                missing_components.append(component_uuid)
+                continue
+
+            resolved[component_uuid] = impacts
+            if isinstance(result.get("report"), dict):
+                reports[component_uuid] = result["report"]
+
+        if missing_components:
+            ctx.add_diagnostic(
+                kind="error",
+                message="Missing precomputed component results for assembled pipeline.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+                missing_components=missing_components,
+            )
+            ctx.stop(success=False)
+            return
+
+        ctx.component_impacts = resolved
+        ctx.component_reports = reports
+        ctx.add_diagnostic(
+            kind="info",
+            message="Resolved precomputed impacts for assembled components.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            resolved_components=len(ctx.component_impacts),
+        )
+
+
+class AggregateComponentImpactsStage:
+    name = "aggregate-component-impacts"
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        aggregated: dict[str, dict[str, float]] = defaultdict(dict)
+
+        for component in ctx.assembled_components:
+            component_uuid = component["process_uuid"]
+            quantity = component["quantity"]
+            impacts = ctx.component_impacts.get(component_uuid, {})
+
+            for indicator, modules in impacts.items():
+                indicator_modules = aggregated.setdefault(indicator, {})
+                for module, value in modules.items():
+                    indicator_modules[module] = indicator_modules.get(module, 0.0) + (
+                        quantity * float(value)
+                    )
+
+        ctx.avg_gwps = {
+            indicator: {module: round(value, 6) for module, value in modules.items()}
+            for indicator, modules in aggregated.items()
+        }
+
+        ctx.unmatched_epds = []
+        ctx.add_diagnostic(
+            kind="info",
+            message="Aggregated assembled impacts using quantity-weighted sum-product.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            indicators=len(ctx.avg_gwps),
+            components=len(ctx.assembled_components),
+        )
+
+
+class AggregateComponentPropertiesStage:
+    name = "aggregate-component-properties"
+
+    _ADDITIVE_FIELDS = {"mass", "volume", "surface", "length", "unit_count"}
+    _NON_ADDITIVE_FIELDS = {
+        "gross_density",
+        "grammage",
+        "linear_density",
+        "layer_thickness",
+        "cross_sectional_area",
+        "weight_per_piece",
+    }
+
+    def run(self, ctx: EpdPipelineContext) -> None:
+        totals: dict[str, float] = {key: 0.0 for key in self._ADDITIVE_FIELDS}
+        missing_properties: list[str] = []
+
+        for component in ctx.assembled_components:
+            component_uuid = component["process_uuid"]
+            quantity = component["quantity"]
+            result = ctx.results_registry.get(component_uuid, {})
+            props = result.get("avg_properties")
+            if not isinstance(props, dict):
+                missing_properties.append(component_uuid)
+                continue
+
+            for field in self._ADDITIVE_FIELDS:
+                value = props.get(field)
+                if isinstance(value, (int, float)):
+                    totals[field] += quantity * float(value)
+
+        if missing_properties:
+            ctx.add_diagnostic(
+                kind="warning",
+                message="Some assembled components had no properties; additive totals are partial.",
+                stage=self.name,
+                process_uuid=ctx.process.uuid,
+                missing_components=missing_properties,
+            )
+
+        ctx.avg_properties = {**totals, **{k: None for k in self._NON_ADDITIVE_FIELDS}}
+        ctx.add_diagnostic(
+            kind="info",
+            message="Aggregated additive physical properties for assembled product.",
+            stage=self.name,
+            process_uuid=ctx.process.uuid,
+            properties=sorted(self._ADDITIVE_FIELDS),
+        )
+
+
 class DeriveTransportA4C2ImpactsStage:
     name = "derive-transport-a4-c2-impacts"
 
@@ -382,14 +583,20 @@ class BuildReportStage:
     name = "build-report"
 
     def run(self, ctx: EpdPipelineContext) -> None:
+        from materia_epd.pipeline.report import build_report
+
+        initial_candidates = len(ctx.process.matches.get("uuids", []))
+        if not initial_candidates:
+            initial_candidates = len(ctx.assembled_components)
+
         ctx.report = build_report(
             report_uuid=ctx.process.uuid,
             process=ctx.process,
             epd_entries=ctx.filtered_epds,
             avg_impacts=ctx.avg_gwps,
             avg_physical=ctx.avg_properties,
-            initial_epds=len(ctx.process.matches["uuids"]),
-            selected_epds=len(ctx.filtered_epds),
+            initial_epds=initial_candidates,
+            selected_epds=len(ctx.filtered_epds) or len(ctx.assembled_components),
             rejected_epds=ctx.rejected_epds + ctx.missing_epds + ctx.unmatched_epds,
         )
 

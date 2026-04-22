@@ -37,6 +37,11 @@ The main concepts in ``pipeline.py`` are:
 * **averaging**: compute representative material properties and impacts.
 * **orchestration**: connect all previous pieces over a folder tree.
 
+
+The pipeline now also supports an **assembled-products** recipe where impacts
+are computed from precomputed component products as a quantity-weighted
+sum-product (e.g. cement + aggregates + water + additives for concrete).
+
 The conceptual data‑flow looks like this:
 
 ```{mermaid}
@@ -63,6 +68,69 @@ Two small generators define how XML is brought into the pipeline:
 
 These functions are intentionally low‑level: they abstract *file iteration and
 parsing* but do not decide anything about *relevance* or *aggregation*.
+
+
+## Matches file format
+
+Each process may have a matches file at:
+
+* ``<dataset>/matches/<process_uuid>.json``
+
+The ``type`` field decides which recipe is selected.
+
+### 1) Average / market-average recipes
+
+For EPD-based aggregation, provide a list of source EPD UUIDs in ``uuids``.
+
+```json
+{
+  "type": "average",
+  "uuids": [
+    "epd-uuid-1",
+    "epd-uuid-2",
+    "epd-uuid-3"
+  ]
+}
+```
+
+```json
+{
+  "type": "market-average",
+  "uuids": [
+    "epd-uuid-1",
+    "epd-uuid-2"
+  ]
+}
+```
+
+### 2) Assembled recipe
+
+For assembled products, provide components instead of ``uuids``. Each
+component references a process UUID that must already have computed outputs
+available in the current run.
+
+```json
+{
+  "type": "assembled",
+  "components": [
+    {
+      "process_uuid": "generic-cement-process-uuid",
+      "quantity": 300.0,
+      "unit": "kg"
+    },
+    {
+      "process_uuid": "generic-aggregate-process-uuid",
+      "quantity": 1800.0,
+      "unit": "kg"
+    },
+    {
+      "process_uuid": "generic-water-process-uuid",
+      "quantity": 180.0,
+      "unit": "kg"
+    }
+  ]
+}
+```
 
 
 ## Filtering and location escalation
@@ -252,4 +320,3 @@ Putting everything together, the conceptual control‑flow looks like:
   concrete ILCD folder structure, but the conceptual heart of the system is
   the combination of **filters**, **escalation**, and **averaging** in
   ``epd_pipeline``.
-

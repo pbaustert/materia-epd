@@ -65,14 +65,15 @@ def estimate_market_shares(df):
 
     m["share"] = m["qty"] / tot
     small = (m["partneriso"] != "RoW") & (m["share"] < 0.01)
-
     if small.any():
         m.loc[m["partneriso"] == "RoW", "qty"] += m.loc[small, "qty"].sum()
         m = m[~small]
         m["share"] = m["qty"] / m["qty"].sum()
 
     m["share"] /= m["share"].sum()
-    return dict(zip(m.sort_values("share", ascending=False)["partneriso"], m["share"]))
+    sorted_m = m.sort_values("share", ascending=False)
+
+    return dict(zip(sorted_m["partneriso"], sorted_m["share"]))
 
 
 def generate_market(loc_code, hs_code) -> None:

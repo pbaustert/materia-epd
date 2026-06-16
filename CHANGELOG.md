@@ -1,6 +1,23 @@
 Changelog
 =========
 
+Version 0.7.0 (2026-06-16)
+--------------------------
+
+- Codex/colors
+- Adding new surface-based scaling to fix #73
+- Refactor report generation and PDF output (metadata extraction, market sankey, layout) fix #75
+- Add mass conversion validation stage and tests fix #78
+- Handle singular matrix in physics projection solver fix #79
+- Derive A4 transport impacts from market shares and add per-kg transport factors fix #80
+- Handle missing module impact values in impact comparison table fix #81
+- Enhance PDF report with multilingual product names, A4 impacts and icon-based change column fix #83
+- Include A4 in impact tables/plots, tweak report layout, and add tests fix #84
+- Fix canvas variable shadowing in report drawing and add regression test fix #85
+- Derive A4 and C2 transport impacts, zero averaged C1, update pipeline and tests fix #86
+- fixes for #87 and #89
+- Add assembled-products recipe with component aggregation stages and orchestration fix #88
+
 Version 0.6.0 (2026-04-08)
 --------------------------
 

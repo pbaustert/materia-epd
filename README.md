@@ -39,8 +39,8 @@ Here’s a minimal example:
 python -m materia_epd <generic_processes_dir> <epd_processes_dir> -o <output_dir> -v
 ```
 
-Note that you need to point to the \root\processes folders and need to provide a \matches folder in the generic data folder to link generic products and EPDs.
-Add the flag --v or -v for verbosity. Logs files with details will be automatically created in `<output_dir>`.
+Note that you need to point to the root `processes` folders and need to provide a `matches` folder in the generic data folder to link generic products and EPDs.
+Add the flag `--v` or `-v` for verbosity. Logs files with details will be automatically created in `<output_dir>`.
 The `<generic_processes_dir>` folder should be structured like this:
 
 ```
@@ -73,7 +73,7 @@ The `<epd_process_dir>` should have a structure like this:
 
 ```
 
-The .json files are named after corresponding generic products and should be structured as follows:
+The `.json` files are named after corresponding generic products and should be structured as follows:
 
 
 ```json

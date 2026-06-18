@@ -23,6 +23,9 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      # Release builds must not pick up local/dirty suffixes from generated files.
+      SETUPTOOLS_SCM_LOCAL_SCHEME: no-local-version
 
     steps:
       - name: Checkout tag
@@ -58,22 +61,28 @@ jobs:
           VERSION="$(python -c "import setuptools_scm; print(setuptools_scm.get_version())")"
           echo "Resolved version: $VERSION"
 
-          if [[ "$VERSION" == *"+"* ]] || [[ "$VERSION" == *".dev"* ]]; then
+          if [[ "$VERSION" == *"+"* ]] || [[ "$VERSION" == *".dev"* ]] || [[ "$VERSION" == *".post"* ]]; then
             echo "Version $VERSION is not a release version; publish only from a clean tag."
             exit 1
           fi
 
           echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Install dependencies and run tests
-        run: |
-          pip install -e ".[dev]"
-          pytest --cov=materia_epd --cov-report=term-missing
-
       - name: Build package
         run: |
           python -m build
           ls -la dist/
+          # Guard against setuptools-scm dirty-tree suffixes in artifact names.
+          if ! compgen -G "dist/materia_epd-${PACKAGE_VERSION}*" > /dev/null; then
+            echo "Expected dist/materia_epd-${PACKAGE_VERSION}* but found:"
+            ls -la dist/
+            exit 1
+          fi
+
+      - name: Install dependencies and run tests
+        run: |
+          pip install -e ".[dev]"
+          pytest --cov=materia_epd --cov-report=term-missing
 
       - name: Publish to PyPI
         if: inputs.target == 'pypi'

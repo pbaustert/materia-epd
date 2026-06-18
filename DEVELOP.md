@@ -123,7 +123,18 @@ git fetch --tags
 git show vX.Y.Z
 ```
 
-### Version contains `+` or `.dev`
+### Version contains `+`, `.dev`, or `.post` (e.g. `0.7.1.post1.dev0+dirty`)
+
+This usually means the package was built from a **dirty working tree**, not that the git tag is wrong.
+
+In CI, `pip install -e .` generates `src/materia_epd/_version.py` (gitignored). That untracked file marks the tree as dirty. If `python -m build` runs **after** the editable install, setuptools-scm appends a `+dirty` suffix (configured via `local_scheme = "dirty-tag"`).
+
+The publish workflow builds **before** running tests to avoid this. Locally, either:
+
+- run `python -m build` before `pip install -e .`, or
+- remove the generated file before building: `rm -f src/materia_epd/_version.py`
+
+### Version contains `+` or `.dev` (not on a release tag)
 
 You are not on a clean release tag. Create and push a new `vX.Y.Z` tag on the release commit, then run the workflow with that tag.
 

@@ -78,7 +78,7 @@ def check_properties_ranges(
                 f"Range warning {ICONS.WARNING}",
                 epd_uuid=uuid,
                 message=f"{prop} {value} is outside "
-                f"the expected range ({min_val}–{max_val}).",
+                f"the expected range ({min_val}-{max_val}).",
             )
             if prop in POTENTIAL_CORRECTIONS.keys():
                 value = value * POTENTIAL_CORRECTIONS[prop]["factor"]

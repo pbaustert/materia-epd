@@ -33,62 +33,95 @@ Requires Python 3.10+.
 ---
 
 ## Usage
-Here’s a minimal example:
+
+### Run the aggregator
 
 ```console
 python -m materia_epd <generic_processes_dir> <epd_processes_dir> -o <output_dir> -v
 ```
 
-Note that you need to point to the \root\processes folders and need to provide a \matches folder in the generic data folder to link generic products and EPDs.
-Add the flag --v or -v for verbosity. Logs files with details will be automatically created in `<output_dir>`.
-The `<generic_processes_dir>` folder should be structured like this:
+- `<generic_processes_dir>` — root folder for skeleton generic products (see [Input folder layout](#input-folder-layout)).
+- `<epd_processes_dir>` — root folder for source EPDs (see [Input folder layout](#input-folder-layout)).
+- `-o <output_dir>` — where aggregated ILCD outputs and reports are written.
+- `-v` — verbose logging. Log files are created in `<output_dir>` when an output path is set.
+
+You need a `matches` folder under the generic folder to link each generic product to its source EPDs (see [Matches JSON](#matches-json)).
+
+### EPD cache
+
+Source EPDs can be cached so later runs avoid re-parsing every XML file.
+
+**Default behaviour:** on the first aggregator run, the tool builds a cache at `./.materia_epd_cache/` in the current working directory, then continues. Subsequent runs load from that cache when it is still valid.
+
+**Pre-build the cache** (optional, without running the pipeline):
+
+```console
+python -m materia_epd build-cache <epd_processes_dir> [-o <cache_dir>] [--force] [--workers N] [-v]
+```
+
+| Flag | Description |
+|------|-------------|
+| `-o <cache_dir>` | Cache directory (default: `./.materia_epd_cache/`) |
+| `--force` | Rebuild even if the cache is already valid |
+| `--workers N` | Parallel extraction workers (default: CPU count) |
+| `-v` | Verbose logging |
+
+**Aggregator cache flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--epd-cache <dir>` | Use a custom cache directory instead of the default |
+| `--no-epd-cache` | Skip the cache and parse source EPD XML on every run |
+
+### Input folder layout
+
+#### Generic products (`<generic_processes_dir>`)
 
 ```
 <generic_process_dir>
 ├── flows
-│   ├── <flow-uuid-1>.xml # Reference flow of EPD-uuid-1
-│   ├── <flow-uuid-2>.xml
-│   └── ...etc
+│   ├── <flow-uuid-1>.xml   # Reference flow of generic-uuid-1
+│   ├── <flow-uuid-2>.xml
+│   └── ...
 ├── matches
-│   ├── <matches-uuid-1>.json # Source EPDs for EPD-uuid-1
-│   ├── <matches-uuid-1>.json
-│   └── ...etc
+│   ├── <generic-uuid-1>.json   # Source EPDs for generic-uuid-1
+│   ├── <generic-uuid-2>.json
+│   └── ...
 ├── PDFs
 ├── processes
-│   ├── <EDP-uuid-1.xml> # Ready-to-fill skeleton file specific for EPD-uuid-1
-│   ├── <EDP-uuid-2.xml>
-│   └── ...etc
+│   ├── <generic-uuid-1>.xml   # Skeleton process for generic-uuid-1
+│   ├── <generic-uuid-2>.xml
+│   └── ...
 └── templates
     ├── GenPro_template.xml # Template with the EPD schema
     └── GenRef_template.xml # Template with the flow schema
 
 ```
 
-The `<epd_process_dir>` should have a structure like this:
+#### Source EPDs (`<epd_processes_dir>`)
 
 ```
 <epd_process_dir>
-├── flows # Contains all reference flows of all processes
-└── processes # Contains all the potential source EPDs
-
+├── flows       # Reference flows for all source EPDs
+└── processes   # All potential source EPD process XMLs
 ```
 
-The .json files are named after corresponding generic products and should be structured as follows:
+### Matches JSON
 
+Files in `matches/` are named after the corresponding generic product UUID:
 
 ```json
 {
-  "type": "<aggregation_type>",  // "average" or "assembled"
+  "type": "<aggregation_type>",
   "uuids": [
     "<uuid-1>",
     "<uuid-2>",
-    "<uuid-3>",
-    "... more UUIDs ..."
+    "<uuid-3>"
   ]
 }
-
 ```
-where the provided uuids link to the process files of the EPDs that match.
+
+`type` is `"average"`, `"market-average"`, or `"assembled"`. The `uuids` list links to process files in the source EPD `processes/` folder.
 
 ---
 

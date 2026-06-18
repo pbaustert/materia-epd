@@ -46,6 +46,7 @@ dev = [
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
 local_scheme = "dirty-tag"
+write_to = "src/materia_epd/_version.py"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

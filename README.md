@@ -94,6 +94,8 @@ where the provided uuids link to the process files of the EPDs that match.
 
 ## Development / running tests
 
+See [DEVELOP.md](DEVELOP.md) for local setup, versioning, and PyPI release instructions.
+
 For local development, install the package in editable mode with developer dependencies:
 
 ```console

@@ -1,0 +1,89 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to publish (e.g. v0.8.0)"
+        required: true
+        type: string
+      target:
+        description: "Publish target"
+        required: true
+        type: choice
+        options:
+          - pypi
+          - testpypi
+        default: testpypi
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify tag and version
+        run: |
+          set -euo pipefail
+
+          TAG="${{ inputs.tag }}"
+
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag must match vX.Y.Z (got: $TAG)"
+            exit 1
+          fi
+
+          EXACT_TAG="$(git describe --exact-match --tags HEAD)"
+          if [ "$EXACT_TAG" != "$TAG" ]; then
+            echo "HEAD is not exactly tag $TAG (got: $EXACT_TAG)"
+            exit 1
+          fi
+
+          python -m pip install --upgrade pip
+          pip install build setuptools-scm
+          VERSION="$(python -c "import setuptools_scm; print(setuptools_scm.get_version())")"
+          echo "Resolved version: $VERSION"
+
+          if [[ "$VERSION" == *"+"* ]] || [[ "$VERSION" == *".dev"* ]]; then
+            echo "Version $VERSION is not a release version; publish only from a clean tag."
+            exit 1
+          fi
+
+          echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install dependencies and run tests
+        run: |
+          pip install -e ".[dev]"
+          pytest --cov=materia_epd --cov-report=term-missing
+
+      - name: Build package
+        run: |
+          python -m build
+          ls -la dist/
+
+      - name: Publish to PyPI
+        if: inputs.target == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+      - name: Publish to TestPyPI
+        if: inputs.target == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: https://test.pypi.org/legacy/

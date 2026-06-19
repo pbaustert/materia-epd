@@ -5,10 +5,23 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "materia-epd"
 dynamic = ["version"]
-description = "Generic EPD Aggregator"
-authors = [{ name = "Paul Baustert", email = "p.m.baustert@gmail.com" }]
+description = "Aggregate and normalize Environmental Product Declaration (EPD) datasets."
+authors = [
+    { name = "pbaustert" },
+    { name = "tngTUDOR" },
+    { name = "glarreag" },
+    { name = "killileg" },
+]
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
+keywords = [
+    "epd",
+    "ilcd",
+    "lca",
+    "life-cycle-assessment",
+    "environmental-product-declaration",
+    "sustainability",
+]
 dependencies = [
     "click",
     "numpy",
@@ -24,12 +37,24 @@ dependencies = [
 license = "MIT"
 license-files = ["LICENSE.txt"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent"
+    "Topic :: Scientific/Engineering",
 ]
+
+[project.scripts]
+materia-epd = "materia_epd.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pbaustert/materia-epd"
+Documentation = "https://materia-epd.readthedocs.io/en/latest/"
+Repository = "https://github.com/pbaustert/materia-epd"
+Issues = "https://github.com/pbaustert/materia-epd/issues"
+Changelog = "https://materia-epd.readthedocs.io/en/latest/changelog.html"
 
 [project.optional-dependencies]
 dev = [
@@ -47,6 +72,7 @@ dev = [
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
 local_scheme = "dirty-tag"
+write_to = "src/materia_epd/_version.py"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

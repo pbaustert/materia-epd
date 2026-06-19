@@ -4,6 +4,7 @@
 ![Coverage](https://raw.githubusercontent.com/killileg/MaterIA/main/coverage.svg)
 [![PyPI](https://img.shields.io/pypi/v/materia-epd.svg)](https://pypi.org/project/materia-epd/)
 [![Python](https://img.shields.io/pypi/pyversions/materia-epd.svg)](https://pypi.org/project/materia-epd/)
+[![Documentation](https://readthedocs.org/projects/materia-epd/badge/?version=latest)](https://materia-epd.readthedocs.io/en/latest/)
 [![License](https://img.shields.io/github/license/killileg/MaterIA?branch=dev)](https://github.com/killileg/MaterIA/blob/dev/LICENSE.txt)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -29,6 +30,14 @@ pip install materia-epd
 ```
 
 Requires Python 3.10+.
+
+---
+
+## Documentation
+
+Full documentation is hosted on [Read the Docs](https://materia-epd.readthedocs.io/en/latest/).
+
+It covers the EPD pipeline, module reference, contributing guidelines, and the changelog.
 
 ---
 
@@ -116,7 +125,8 @@ Files in `matches/` are named after the corresponding generic product UUID:
   "uuids": [
     "<uuid-1>",
     "<uuid-2>",
-    "<uuid-3>"
+    "<uuid-3>",
+    "... more UUIDs ..."
   ]
 }
 ```
@@ -126,6 +136,8 @@ Files in `matches/` are named after the corresponding generic product UUID:
 ---
 
 ## Development / running tests
+
+See [DEVELOP.md](DEVELOP.md) for local setup, versioning, and PyPI release instructions.
 
 For local development, install the package in editable mode with developer dependencies:
 

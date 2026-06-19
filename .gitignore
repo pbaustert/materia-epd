@@ -60,4 +60,3 @@ MANIFEST
 *log.json
 
 _build/
-src/materia_epd/_version.py

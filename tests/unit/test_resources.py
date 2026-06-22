@@ -61,6 +61,7 @@ def test_iter_json_from_package_folder(mock_files, mock_as_file, mock_gen):
 
 @patch("materia_epd.resources.load_json_from_package")
 def test_get_regions_mapping(mock_load):
+    res.get_regions_mapping.cache_clear()
     mock_load.return_value = {"EU": "Europe"}
     result = res.get_regions_mapping()
     assert result == {"EU": "Europe"}
@@ -69,6 +70,7 @@ def test_get_regions_mapping(mock_load):
 
 @patch("materia_epd.resources.load_json_from_package")
 def test_get_indicator_synonyms(mock_load):
+    res.get_indicator_synonyms.cache_clear()
     mock_load.return_value = {"GHG": "Greenhouse gases"}
     result = res.get_indicator_synonyms()
     assert result == {"GHG": "Greenhouse gases"}

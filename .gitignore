@@ -60,3 +60,6 @@ MANIFEST
 *log.json
 
 _build/
+
+# default materia_epd cache dir
+.materia_epd_cache/

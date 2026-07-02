@@ -104,27 +104,65 @@ class IlcdFlow:
 
 
 @dataclass
+class RefFlowRef:
+    """Lightweight flow reference for cache-loaded EPDs (no XML root)."""
+
+    uuid: str
+
+
+@dataclass
 class IlcdProcess:
-    root: ET.Element
+    root: ET.Element | None
     path: Path
     uuid: Union[str, None] = None
     loc: Union[None, str] = None
-    ref_flow: Union[IlcdFlow, None] = None
+    ref_flow: Union[IlcdFlow, RefFlowRef, None] = None
+    _raw_lcia: Union[dict[str, dict[str, float | None]], None] = None
 
     def __post_init__(self):
-        self._get_uuid()
-        self._get_loc()
+        if self.root is not None:
+            self._get_uuid()
+            self._get_loc()
 
     def _get_uuid(self) -> str | None:
+        if self.root is None:
+            return self.uuid
         node = self.root.find(XP.UUID, NS)
         self.uuid = node.text.strip() if (node is not None and node.text) else None
 
     def _get_loc(self) -> str | None:
+        if self.root is None:
+            return self.loc
         loc_node = self.root.find(XP.LOCATION, NS)
         loc_code = loc_node.attrib.get(ATTR.LOCATION) if loc_node is not None else None
         self.loc = ilcd_to_iso_location(loc_code) if loc_code else None
 
-    def get_ref_flow(self) -> IlcdFlow:
+    @classmethod
+    def from_cache_record(
+        cls,
+        *,
+        uuid: str,
+        loc: str | None,
+        ref_flow_uuid: str,
+        source_path: str,
+        material_kwargs: dict,
+        raw_lcia: dict[str, dict[str, float | None]],
+        epd_folder: Path,
+    ) -> IlcdProcess:
+        path = epd_folder / "processes" / source_path
+        proc = cls(root=None, path=path, uuid=uuid, loc=loc, _raw_lcia=raw_lcia)
+        proc.ref_flow = RefFlowRef(uuid=ref_flow_uuid)
+        proc.material_kwargs = material_kwargs
+        proc.material = Material(**material_kwargs)
+        return proc
+
+    def get_ref_flow(self) -> IlcdFlow | RefFlowRef:
+        if getattr(self, "material", None) is not None and self.ref_flow is not None:
+            return self.ref_flow
+        if self.root is None:
+            raise ValueError(
+                f"Cannot load ref flow for EPD {self.uuid}: no XML root and no cached material"
+            )
         ref_flow_id = self.root.findtext(XP.QUANT_REF, namespaces=NS).strip()
         ref_flow_exchange = self.root.find(XP.exchange_by_id(ref_flow_id), NS)
         ref_flow_uuid = ref_flow_exchange.find(XP.REF_TO_FLOW, NS).attrib.get(
@@ -181,6 +219,29 @@ class IlcdProcess:
         self.dec_unit = UNIT_QUANTITY_MAPPING.get(unit_symbol)
 
     def get_lcia_results(self) -> list[dict]:
+        if self._raw_lcia is not None:
+            if self.material is None:
+                raise ValueError(
+                    f"Cannot compute LCIA for cached EPD {self.uuid}: material not set"
+                )
+            scaling_factor = self.material.scaling_factor
+            results = []
+            for name, modules in self._raw_lcia.items():
+                values = {
+                    mod: (
+                        val * scaling_factor if val is not None else None
+                    )
+                    for mod, val in modules.items()
+                }
+                results.append({"name": name, "values": values})
+            self.lcia_results = results
+            return results
+
+        if self.root is None:
+            raise ValueError(
+                f"Cannot load LCIA for EPD {self.uuid}: no XML root and no cached LCIA"
+            )
+
         results = []
 
         for lcia_result in self.root.findall(XP.LCIA_RESULT, NS):

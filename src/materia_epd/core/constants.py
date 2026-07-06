@@ -13,8 +13,6 @@ class ICONS:
 # ----------------------------- TRADE ----------------------------------------
 
 TRADE_YEARS = [str(y) for y in range(2021, 2026)]
-TRADE_TARGET = "442"  # Luxembourg
-TRADE_FLOW = "M"  # Imports
 TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
 
 # ----------------------------- ILCD -----------------------------------------

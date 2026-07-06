@@ -84,3 +84,18 @@ def get_comtrade_api_key():
 @lru_cache(maxsize=1)
 def get_location_data(loc_code: str):
     return load_json_from_package("locations", f"{loc_code}.json")
+
+
+@lru_cache(maxsize=1)
+def get_national_production(loc_code: str, hs_code: str):
+    filename = f"{hs_code}.json"
+    subfolder = f"national_production/{loc_code}"
+
+    resource = files(__package__).joinpath("data", subfolder, filename)
+    if resource.is_file():
+        with as_file(resource) as path:
+            data = io_files.read_json_file(path)
+            if data is not None:
+                return data
+    else:
+        return {"production": 0}

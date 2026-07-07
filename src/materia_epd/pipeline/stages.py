@@ -193,13 +193,16 @@ class ValidateMassConversionStage:
         mass = ctx.avg_properties.get("mass")
         required_prop = self._REQUIRED_PROP.get(dec_unit)
         prop_value = ctx.avg_properties.get(required_prop)
-        
+
         if mass is None or prop_value is None:
             ctx.add_diagnostic(
                 kind="error",
                 message="Mass conversion validation failed.",
                 stage=self.name,
                 process_uuid=ctx.process.uuid,
+                missing_mass=mass is None,
+                missing_required_prop=prop_value is None,
+                required_prop=required_prop,
             )
             ctx.stop(success=False)
 
@@ -466,7 +469,7 @@ class AggregateComponentPropertiesStage:
         if missing_properties:
             ctx.add_diagnostic(
                 kind="warning",
-                message="Some assembled components had no properties; additive totals are partial.",
+                message="Some assembled components had no properties.",
                 stage=self.name,
                 process_uuid=ctx.process.uuid,
                 missing_components=missing_properties,
@@ -493,7 +496,7 @@ class DeriveTransportA4C2ImpactsStage:
         if not isinstance(mass, (int, float)):
             ctx.add_diagnostic(
                 kind="warning",
-                message="Skipped A4/C2 transport derivation because mass is unavailable.",
+                message="Skipped A4/C2 because mass is unavailable.",
                 stage=self.name,
                 process_uuid=ctx.process.uuid,
             )
@@ -507,7 +510,9 @@ class DeriveTransportA4C2ImpactsStage:
         total_share = 0.0
         missing_locations: list[str] = []
         for source_location, share in grouped_market.items():
-            impacts_per_kg = get_transport_impact_per_kg(source_location, target_location)
+            impacts_per_kg = get_transport_impact_per_kg(
+                source_location, target_location
+            )
             if not impacts_per_kg:
                 missing_locations.append(source_location)
                 continue

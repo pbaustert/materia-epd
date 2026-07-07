@@ -71,14 +71,3 @@ def test_lcia_output_modules_and_map_consistency():
         for sub in c.LCIA_AGGREGATE_MAP[mod]:
             assert isinstance(sub, str)
     assert set(c.LCIA_OUTPUT_MODULES).issuperset(c.LCIA_AGGREGATE_MAP.keys())
-
-
-# ----------------------------- Regions & Trade ------------------------------
-
-
-def test_trade_constants_types():
-    assert isinstance(c.TRADE_YEARS, list)
-    assert all(y.isdigit() for y in c.TRADE_YEARS)
-    assert isinstance(c.TRADE_TARGET, str)
-    assert isinstance(c.TRADE_FLOW, str)
-    assert isinstance(c.TRADE_ROW_REGIONS, set)

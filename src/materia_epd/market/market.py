@@ -18,7 +18,7 @@ def fetch_trade_data(
     flow_code: str,
     aggregate: bool = False,
 ) -> pd.DataFrame | None:
-    """Fetch trade data with support for multiple quantity units (kg, m³, etc.)."""
+    """Fetch trade data."""
     comtradeapikey = get_comtrade_api_key()
     location = get_location_data(loc_code)
     comtradeID = location["comtradeID"]
@@ -59,26 +59,6 @@ def fetch_trade_data(
     return None
 
 
-def fetch_import_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
-    """Get raw import data from comtrade."""
-    return fetch_trade_data(loc_code, hs_code, "M", aggregate=False)
-
-
-def fetch_export_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
-    """Get aggregated export data from comtrade."""
-    return fetch_trade_data(loc_code, hs_code, "X", aggregate=True)
-
-
-def fetch_reexport_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
-    """Get aggregated re-export data from comtrade."""
-    return fetch_trade_data(loc_code, hs_code, "RX", aggregate=True)
-
-
-def fetch_reimport_data_for_hs_code(loc_code: str, hs_code: str) -> pd.DataFrame | None:
-    """Get aggregated re-import data from comtrade."""
-    return fetch_trade_data(loc_code, hs_code, "RM", aggregate=True)
-
-
 def add_national_production(loc_code, hs_code, trade_df):
     """Adds national production retained for the domestic market."""
 
@@ -96,9 +76,9 @@ def add_national_production(loc_code, hs_code, trade_df):
         return trade_df
 
     else:
-        export_df = fetch_export_data_for_hs_code(loc_code, hs_code)
-        reimport_df = fetch_reimport_data_for_hs_code(loc_code, hs_code)
-        reexport_df = fetch_reexport_data_for_hs_code(loc_code, hs_code)
+        export_df = fetch_trade_data(loc_code, hs_code, "X", aggregate=True)
+        reimport_df = fetch_trade_data(loc_code, hs_code, "RM", aggregate=True)
+        reexport_df = fetch_trade_data(loc_code, hs_code, "RX", aggregate=True)
 
         exports_by_year = {}
         reimports_by_year = {}
@@ -124,7 +104,6 @@ def add_national_production(loc_code, hs_code, trade_df):
             reimports = reimports_by_year.get(year, 0)
             reexports = reexports_by_year.get(year, 0)
 
-            # Production retained in the domestic market
             domestic_production = max(
                 annual_production - exports + reimports + reexports, 0
             )
@@ -139,7 +118,7 @@ def add_national_production(loc_code, hs_code, trade_df):
 
             new_row[QUANTITY_COL] = domestic_production
             new_row["altQty"] = domestic_production
-            new_row["netWgt"] = domestic_production
+            new_row["qty"] = domestic_production
             new_row["cifvalue"] = domestic_production
             new_row["fobvalue"] = domestic_production
             new_row["primaryValue"] = domestic_production
@@ -151,18 +130,14 @@ def add_national_production(loc_code, hs_code, trade_df):
 
 def estimate_market_shares(df):
     """Estimate market shares from raw data."""
-    df.columns = [c.lower().strip() for c in df.columns]
-    if not {"partneriso", QUANTITY_COL}.issubset(df.columns):
-        print("❌ Missing required columns:", df.columns.tolist())
-        return {}
 
-    s = df.groupby("partneriso", as_index=False)[QUANTITY_COL].sum()
-    row_qty = s.loc[s["partneriso"].isin(C.TRADE_ROW_REGIONS), QUANTITY_COL].sum()
+    s = df.groupby("partnerISO", as_index=False)[QUANTITY_COL].sum()
+    row_qty = s.loc[s["partnerISO"].isin(C.TRADE_ROW_REGIONS), QUANTITY_COL].sum()
 
     m = pd.concat(
         [
-            s[~s["partneriso"].isin(C.TRADE_ROW_REGIONS)],
-            pd.DataFrame([{"partneriso": "RoW", QUANTITY_COL: row_qty}]),
+            s[~s["partnerISO"].isin(C.TRADE_ROW_REGIONS)],
+            pd.DataFrame([{"partnerISO": "RoW", QUANTITY_COL: row_qty}]),
         ],
         ignore_index=True,
     )
@@ -172,9 +147,9 @@ def estimate_market_shares(df):
         return {}
 
     m["share"] = m[QUANTITY_COL] / tot
-    small = (m["partneriso"] != "RoW") & (m["share"] < 0.01)
+    small = (m["partnerISO"] != "RoW") & (m["share"] < 0.01)
     if small.any():
-        m.loc[m["partneriso"] == "RoW", QUANTITY_COL] += m.loc[
+        m.loc[m["partnerISO"] == "RoW", QUANTITY_COL] += m.loc[
             small, QUANTITY_COL
         ].sum()
         m = m[~small]
@@ -183,12 +158,12 @@ def estimate_market_shares(df):
     m["share"] /= m["share"].sum()
     sorted_m = m.sort_values("share", ascending=False)
 
-    return dict(zip(sorted_m["partneriso"], sorted_m["share"]))
+    return dict(zip(sorted_m["partnerISO"], sorted_m["share"]))
 
 
 def generate_market(loc_code, hs_code) -> None:
     """Generate the market for the provided country and HS code."""
-    df = fetch_import_data_for_hs_code(loc_code, hs_code)
+    df = fetch_trade_data(loc_code, hs_code, "M", aggregate=False)
     df = add_national_production(loc_code, hs_code, df)
     if df is not None:
         return estimate_market_shares(df)

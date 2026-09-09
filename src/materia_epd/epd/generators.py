@@ -5,18 +5,14 @@ from pathlib import Path
 from materia_epd.epd.models import IlcdProcess
 
 
-def gen_xml_objects(folder_path, logger):
-    """Creates a generator that returns parsed XML EPD files"""
-    if folder_path.is_file():
-        folder = Path(folder_path).parent
-    elif folder_path.is_dir():
-        folder = Path(folder_path)
-    else:
-        e = ValueError("Not a file/folder path")
-        logger.error("Error", exec_info=e)
-        raise e
-
-    for xml_file in folder.glob("*.xml"):
+def gen_xml_objects(folder_path, logger, uuids=None):
+    """Creates a generator that returns parsed XML files."""
+    for xml_file in Path(folder_path).glob("*.xml"):
+        if uuids is not None:
+            # Extract UUID from filename (handles version suffixes like _00.03.000)
+            file_uuid = xml_file.stem.split("_")[0]
+            if file_uuid not in uuids:
+                continue
         try:
             tree = ET.parse(xml_file)
             root = tree.getroot()
@@ -25,10 +21,10 @@ def gen_xml_objects(folder_path, logger):
             print(f"❌ Error reading {xml_file.name}: {e}")
 
 
-def gen_epds(folder_path, logger):
-    """Creates a generator of `IlcdProcess` instances from parsed XML EPD files."""
+def gen_epds(folder_path, logger, uuids=None):
+    """Creates a generator of `IlcdProcess` instances."""
     for path, root in track(
-        gen_xml_objects(folder_path, logger),
+        gen_xml_objects(folder_path, logger, uuids),
         description="Parsing XMLs into IlcdProcess objects",
         transient=True,
     ):

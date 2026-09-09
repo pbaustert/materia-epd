@@ -82,11 +82,8 @@ def run_materia(
     output_path: Path,
     process_uuids: set[str] | None = None,
 ) -> None:
-    epds = list(gen_epds(path_to_epd_folder / "processes", logger))
-    logger.info("Parsed XML EPDs", count=len(epds))
-
-    results_registry: dict[str, dict] = {}
-    processes = []
+    # Load all generic processes
+    all_generic = {}
     for path, root in gen_xml_objects(path_to_gen_folder / "processes", logger):
         process = IlcdProcess(root=root, path=path)
         process.get_ref_flow()
@@ -94,9 +91,41 @@ def run_materia(
         process.get_hs_class()
         process.get_market()
         process.get_matches()
-        if process.matches:
-            if process_uuids is None or process.uuid in process_uuids:
-                processes.append(process)
+        all_generic[process.uuid] = process
+
+    # Expand process list with dependencies
+    processes_to_run: set[str] = set()
+    to_visit = set(process_uuids or [p.uuid for p in all_generic.values() if p.matches])
+
+    while to_visit:
+        uuid = to_visit.pop()
+        processes_to_run.add(uuid)
+        if (
+            (p := all_generic.get(uuid))
+            and p.matches
+            and p.matches.get("type") == "assembled"
+        ):
+            for c in p.matches.get("components", []):
+                to_visit.add(c["uuid"] if isinstance(c, dict) else c)
+
+    # Collect required EPD UUIDs
+    required_epd_uuids: set[str] = set()
+    for uuid in processes_to_run:
+        if (p := all_generic.get(uuid)) and p.matches:
+            mtype = p.matches.get("type")
+            if mtype in ("average", "market-average"):
+                required_epd_uuids.update(p.matches.get("uuids", []))
+            elif mtype == "regression":
+                required_epd_uuids.update(
+                    e["uuid"] for e in p.matches.get("data", []) if "uuid" in e
+                )
+
+    # Load only required EPDs
+    epds = list(gen_epds(path_to_epd_folder / "processes", logger, required_epd_uuids))
+
+    # Build process list
+    processes = [all_generic[uuid] for uuid in processes_to_run if uuid in all_generic]
+    results_registry: dict[str, dict] = {}
 
     def _run_process(process: IlcdProcess) -> EpdPipelineContext:
         ctx = EpdPipelineContext(

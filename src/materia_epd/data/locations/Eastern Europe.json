@@ -15,7 +15,7 @@
     "UKR",
     "Eastern Europe"
   ],
-  "ColorHex": "#DBCE63",
+  "ColorHex": "#95C1E8",
   "ColorRGBA": [
     0.86,
     0.81,
@@ -24,10 +24,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0299276,
-      "Climate change-Fossil": 0.0295572,
-      "Climate change-Biogenic": 0.0002366,
-      "Climate change-Land use and land use change": 0.0001378
+      "GWP-Total": 0.0299276,
+      "GWP-Fossil": 0.0295572,
+      "GWP-Biogenic": 0.0002366,
+      "GWP-LULUC": 0.0001378
     }
   }
 }

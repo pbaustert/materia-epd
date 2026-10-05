@@ -10,7 +10,7 @@
     "VUT",
     "Melanesia"
   ],
-  "ColorHex": "#DB6E63",
+  "ColorHex": "#66C2A4",
   "ColorRGBA": [
     0.86,
     0.43,
@@ -19,10 +19,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2746483,
-      "Climate change-Fossil": 0.2740438,
-      "Climate change-Biogenic": 0.0001889,
-      "Climate change-Land use and land use change": 0.0002425
+      "GWP-Total": 0.2746483,
+      "GWP-Fossil": 0.2740438,
+      "GWP-Biogenic": 0.0001889,
+      "GWP-LULUC": 0.0002425
     }
   }
 }

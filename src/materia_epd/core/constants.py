@@ -17,6 +17,12 @@ TRADE_ROW_REGIONS = {"E19", "S19", "E27", "OED", "EUU", "EEC", "ROW", "_X "}
 
 # ----------------------------- ILCD -----------------------------------------
 
+METHOD_UUIDS = {
+    "GWP-Total": "a7ea142a-9749-11ed-a8fc-0242ac120002",
+    "GWP-Fossil": "a7ea19c0-9749-11ed-a8fc-0242ac120002",
+    "GWP-Biogenic": "a7ea186c-9749-11ed-a8fc-0242ac120002",
+    "GWP-LULUC": "a7ea1ae2-9749-11ed-a8fc-0242ac120002",
+}
 
 NS = {
     "ns0": "http://lca.jrc.it/ILCD/Process",
@@ -32,6 +38,8 @@ NS = {
 
 class XP:
     # Process-related
+    NAME = ".//ns0:name/ns0:baseName"
+    VERSION = ".//common:dataSetVersion"
     QUANT_REF = ".//proc:quantitativeReference/proc:referenceToReferenceFlow"
     UUID = ".//common:UUID"
     LOCATION = ".//proc:locationOfOperationSupplyOrProduction"
@@ -114,6 +122,20 @@ ILCD_QUANTITY_LABELS = {
     "length": "Length",
 }
 
+PHYS_TITLES = {
+    "mass": "Mass [kg]",
+    "volume": "Volume [m\u00b3]",
+    "surface": "Surface [m\u00b2]",
+    "length": "Length [m]",
+    "unit_count": "Unit count [unit]",
+    "gross_density": "Gross density [kg/m\u00b3]",
+    "grammage": "Grammage [kg/m\u00b2]",
+    "linear_density": "Linear density [kg/m]",
+    "layer_thickness": "Layer thickness [m]",
+    "cross_sectional_area": "Cross-sectional area [m\u00b2]",
+    "weight_per_piece": "Weight per piece [kg]",
+}
+
 UNIT_GROUP_MAPPING = {
     "93a60a56-a3c8-11da-a746-0800200b9a66": "ad38d542-3fe9-439d-9b95-2f5f7752acaf",
     "838aaa23-0117-11db-92e3-0800200c9a66": "838aaa22-0117-11db-92e3-0800200c9a66",
@@ -171,10 +193,6 @@ REASONABLE_RANGES = {
     "volume": (0.000001, 100.0),
 }
 
-POTENTIAL_CORRECTIONS = {
-    "grammage": {"from": "g/m^2", "to": "kg/m^2", "factor": 0.001},
-}
-
 ACCEPTED_RESCALINGS = [
     {"unit_count"},
     {"mass"},
@@ -198,3 +216,11 @@ REL: List[Tuple[str, List[str]]] = [
     ("grammage", ["layer_thickness", "gross_density"]),
     ("linear_density", ["cross_sectional_area", "gross_density"]),
 ]
+
+
+METHOD_DESCRIPTION = {
+    "market-average": "Market-weighted averaging. Country-level averages are combined using market share weights.",  # noqa E501
+    "assembled": "Quantity-weighted aggregation. Component impacts and properties are aggregated using component quantities.",  # noqa E501
+    "regression": "Regression based analysis accounting for production technology and secondary material content.",  # noqa E501
+    "average": "Arithmetic averaging. Matching EPDs are averaged with equal weight.",
+}

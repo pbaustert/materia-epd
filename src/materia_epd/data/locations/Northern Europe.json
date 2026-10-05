@@ -21,7 +21,7 @@
     "SWE",
     "Northern Europe"
   ],
-  "ColorHex": "#DB63C1",
+  "ColorHex": "#4C78A8",
   "ColorRGBA": [
     0.86,
     0.39,
@@ -30,10 +30,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0388907,
-      "Climate change-Fossil": 0.0385772,
-      "Climate change-Biogenic": -0.0000001,
-      "Climate change-Land use and land use change": 0.0003064
+      "GWP-Total": 0.0388907,
+      "GWP-Fossil": 0.0385772,
+      "GWP-Biogenic": -0.0000001,
+      "GWP-LULUC": 0.0003064
     }
   }
 }

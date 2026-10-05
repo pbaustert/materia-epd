@@ -13,7 +13,7 @@
     "UMI",
     "Micronesia"
   ],
-  "ColorHex": "#63DB71",
+  "ColorHex": "#80CDC1",
   "ColorRGBA": [
     0.39,
     0.86,
@@ -22,10 +22,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2746483,
-      "Climate change-Fossil": 0.2740438,
-      "Climate change-Biogenic": 0.0002068,
-      "Climate change-Land use and land use change": 0.0002226
+      "GWP-Total": 0.2746483,
+      "GWP-Fossil": 0.2740438,
+      "GWP-Biogenic": 0.0002068,
+      "GWP-LULUC": 0.0002226
     }
   }
 }

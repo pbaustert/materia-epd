@@ -14,7 +14,7 @@
     "NLD",
     "Western Europe"
   ],
-  "ColorHex": "#B463DB",
+  "ColorHex": "#72A6D6",
   "ColorRGBA": [
     0.7,
     0.39,
@@ -23,10 +23,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0237135,
-      "Climate change-Fossil": 0.0234138,
-      "Climate change-Biogenic": 0.0000412,
-      "Climate change-Land use and land use change": 0.0002560
+      "GWP-Total": 0.0237135,
+      "GWP-Fossil": 0.0234138,
+      "GWP-Biogenic": 0.0000412,
+      "GWP-LULUC": 0.0002560
     }
   }
 }

@@ -16,7 +16,7 @@
     "VNM",
     "South-eastern Asia"
   ],
-  "ColorHex": "#DBDA63",
+  "ColorHex": "#F28E2B",
   "ColorRGBA": [
     0.86,
     0.85,
@@ -25,10 +25,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2105622,
-      "Climate change-Fossil": 0.2099913,
-      "Climate change-Biogenic": 0.0001377,
-      "Climate change-Land use and land use change": 0.0003035
+      "GWP-Total": 0.2105622,
+      "GWP-Fossil": 0.2099913,
+      "GWP-Biogenic": 0.0001377,
+      "GWP-LULUC": 0.0003035
     }
   }
 }

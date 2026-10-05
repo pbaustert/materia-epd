@@ -33,7 +33,7 @@
     "VIR",
     "Caribbean"
   ],
-  "ColorHex": "#82DB63",
+  "ColorHex": "#C2A5CF",
   "ColorRGBA": [
     0.51,
     0.86,
@@ -42,10 +42,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1107958,
-      "Climate change-Fossil": 0.1104483,
-      "Climate change-Biogenic": 0.0000272,
-      "Climate change-Land use and land use change": 0.0002570
+      "GWP-Total": 0.1107958,
+      "GWP-Fossil": 0.1104483,
+      "GWP-Biogenic": 0.0000272,
+      "GWP-LULUC": 0.0002570
     }
   }
 }

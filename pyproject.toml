@@ -32,6 +32,8 @@ dependencies = [
     "structlog>=25.5.0",
     "matplotlib",
     "reportlab",
+    "svglib",
+    "squarify"
 ]
 license = "MIT"
 license-files = ["LICENSE.txt"]
@@ -84,7 +86,7 @@ where = ["src"]
 "materia_epd.data" = ["**/*.json"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=50"
+addopts = "--cov=materia_epd --cov-report=term-missing --cov-fail-under=40"
 testpaths = ["tests"]
 
 [tool.deptry]

@@ -20,6 +20,7 @@ from materia_epd.metrics.averaging import (
 from materia_epd.geo.locations import get_transport_impact_per_kg
 from materia_epd.geo.locations import get_location_attribute
 from materia_epd.resources import get_tech_shares
+from materia_epd.doc.report import build_report_json
 
 
 class PipelineStage(Protocol):
@@ -263,10 +264,51 @@ class ResolveComponentResultsStage:
         missing_components: list[str] = []
         resolved: dict[str, dict[str, dict[str, float]]] = {}
         reports: dict[str, dict] = {}
+        mass_composition = []
 
         for component in ctx.assembled_components:
             component_uuid = component["uuid"]
             result = ctx.results_registry.get(component_uuid, {})
+            component_name = result["report"]["meta"]["product"]["names_by_language"][
+                "en"
+            ]
+            mat = Material(**result["avg_properties"])
+
+            rescal_kwargs = {
+                "surface": None,
+                "mass": None,
+                "unit_count": None,
+                "weight_per_piece": None,
+                "length": None,
+                "layer_thickness": None,
+                "linear_density": None,
+                "cross_sectional_area": None,
+                "gross_density": None,
+                "grammage": None,
+                "volume": None,
+            }
+
+            if component["unit"] == "kg":
+                rescal_kwargs["mass"] = component["quantity"]
+
+            if component["unit"] == "m3":
+                rescal_kwargs["volume"] = component["quantity"]
+
+            if component["unit"] == "m2":
+                rescal_kwargs["surface"] = component["quantity"]
+
+            if component["unit"] == "m":
+                rescal_kwargs["length"] = component["quantity"]
+
+            if component["unit"] == "unit":
+                rescal_kwargs["unit_count"] = component["quantity"]
+
+            mat.rescale(rescal_kwargs)
+            component_quantities = mat.to_dict()
+            component_mass = component_quantities["mass"]
+
+            mass_composition.append({"name": component_name, "mass": component_mass})
+
             impacts = result.get("avg_gwps")
             if not isinstance(impacts, dict):
                 missing_components.append(component_uuid)
@@ -289,6 +331,7 @@ class ResolveComponentResultsStage:
 
         ctx.component_impacts = resolved
         ctx.component_reports = reports
+        ctx.mass_composition = mass_composition
         ctx.add_diagnostic(
             kind="info",
             message="Resolved precomputed impacts for assembled components.",
@@ -459,95 +502,119 @@ class LoadRegressionDataStage:
 
 class RegressionImpactsStage:
     name = "compute-regression-impacts"
+    regression_modules = ("A1-A3", "D")
+
+    @staticmethod
+    def _features(entry, techs, secondary=None):
+        technology = entry["technology"]
+        secondary = (
+            float(entry["secondary material"]) if secondary is None else secondary
+        )
+        return [1.0] + [(technology == tech) for tech in techs[:-1]] + [secondary]
 
     def run(self, ctx: EpdPipelineContext) -> None:
         techs = ctx.matches["metadata"]["technology"]
+        if "BOF" in techs:
+            techs = [t for t in techs if t != "BOF"] + ["BOF"]
 
-        # Collect all indicators with A1-A3
-        all_indicators = set()
+        targets = set()
         for epd in ctx.filtered_epds:
             epd.get_lcia_results()
-            for r in epd.lcia_results:
-                if "A1-A3" in r["values"]:
-                    all_indicators.add(r["name"])
+            targets.update(
+                (r["name"], module)
+                for r in epd.lcia_results
+                for module in self.regression_modules
+                if module in r["values"]
+            )
 
-        # Fit regression per indicator
+        secondary_by_tech = defaultdict(list)
+        for entry in ctx.regression_data.values():
+            secondary_by_tech[entry["technology"]].append(
+                float(entry["secondary material"])
+            )
+        avg_secondary = {t: np.mean(v) for t, v in secondary_by_tech.items()}
+
         beta = {}
-        avg_sec = defaultdict(list)
-
-        for ind in all_indicators:
+        for indicator, module in targets:
             X, y = [], []
-            tech_sec = defaultdict(list)
-
             for epd in ctx.filtered_epds:
                 entry = ctx.regression_data.get(epd.uuid)
-                a1a3_val = next(
+                value = next(
                     (
-                        float(r["values"]["A1-A3"])
+                        r["values"].get(module)
                         for r in epd.lcia_results
-                        if r["name"] == ind and "A1-A3" in r["values"]
+                        if r["name"] == indicator
                     ),
                     None,
                 )
-
-                if a1a3_val is None:
+                if entry is None or value is None:
                     ctx.add_diagnostic(
                         kind="warning",
-                        message="Missing A1-A3 value for regression.",
+                        message="Missing regression data."
+                        if entry is None
+                        else f"Missing {module} value.",
                         stage=self.name,
                         process_uuid=ctx.process.uuid,
                         epd_uuid=epd.uuid,
-                        indicator=ind,
+                        indicator=indicator,
                     )
                     continue
+                X.append(self._features(entry, techs))
+                y.append(float(value))
+            if X:
+                beta[indicator, module] = np.linalg.lstsq(
+                    np.asarray(X, dtype=float), np.asarray(y, dtype=float), rcond=None
+                )[0]
 
-                X.append(
-                    [1.0]
-                    + [1 if entry["technology"] == t else 0 for t in techs]
-                    + [float(entry["secondary material"])]
-                )
-                y.append(a1a3_val)
-                tech_sec[entry["technology"]].append(float(entry["secondary material"]))
-
-            beta[ind] = np.linalg.lstsq(np.array(X), np.array(y), rcond=None)[0]
-            for tech, secs in tech_sec.items():
-                avg_sec[tech].extend(secs)
-
-        avg_sec_final = {t: np.mean(s) if s else 0 for t, s in avg_sec.items()}
-
-        # Compute country impacts
         market_impacts = {}
         for country in ctx.process.market:
             tech_mix = get_tech_shares(country, ctx.process.hs_class)
-            country_imp = defaultdict(dict)
+            country_impacts = defaultdict(dict)
 
-            for ind, b in beta.items():
-                a1a3 = sum(
-                    share
-                    * float(
-                        np.array(
-                            [1.0]
-                            + [1 if tech == t else 0 for t in techs]
-                            + [avg_sec_final.get(tech, 0)]
+            for (indicator, module), coefficients in beta.items():
+                country_impacts[indicator][module] = float(
+                    sum(
+                        share
+                        * (
+                            coefficients[0]
+                            + (
+                                coefficients[techs[:-1].index(tech) + 1]
+                                if tech != "BOF"
+                                else 0
+                            )
+                            + coefficients[-1] * avg_secondary.get(tech, 0)
                         )
-                        @ b
+                        for tech, share in tech_mix.items()
+                        if share > 0
                     )
-                    for tech, share in tech_mix.items()
-                    if share > 0
                 )
-                country_imp[ind]["A1-A3"] = a1a3
 
             country_epds = get_locfiltered_epds(
                 ctx.filtered_epds, LocationFilter({country})
             )
             if country_epds:
-                other_imp = average_impacts([e.lcia_results for e in country_epds])
-                for ind, mods in other_imp.items():
-                    for mod, val in mods.items():
-                        if mod != "A1-A3":
-                            country_imp[ind][mod] = val
+                for indicator, modules in average_impacts(
+                    [epd.lcia_results for epd in country_epds]
+                ).items():
+                    for module, value in modules.items():
+                        if module not in self.regression_modules:
+                            country_impacts[indicator][module] = value
 
-            market_impacts[country] = dict(country_imp)
+            market_impacts[country] = {
+                indicator: dict(modules)
+                for indicator, modules in country_impacts.items()
+            }
+
+        ctx.regression_models = {
+            f"{ind} {mod}": {
+                "intercept": float(coeffs[0]),
+                "tech_coeffs": {
+                    tech: float(coeffs[i + 1]) for i, tech in enumerate(techs[:-1])
+                },
+                "secondary_coeff": float(coeffs[-1]),
+            }
+            for (ind, mod), coeffs in beta.items()
+        }
 
         ctx.market_impacts = market_impacts
         ctx.avg_gwps = market_weighted_impacts(ctx.process.market, market_impacts)
@@ -558,13 +625,11 @@ class BuildReportStage:
     name = "build-report"
 
     def run(self, ctx: EpdPipelineContext) -> None:
-        from materia_epd.pipeline.report import build_report
-
         initial_candidates = len(ctx.process.matches.get("uuids", []))
         if not initial_candidates:
             initial_candidates = len(ctx.assembled_components)
 
-        ctx.report = build_report(
+        ctx.report = build_report_json(
             report_uuid=ctx.process.uuid,
             process=ctx.process,
             epd_entries=ctx.filtered_epds,
@@ -573,6 +638,10 @@ class BuildReportStage:
             initial_epds=initial_candidates,
             selected_epds=len(ctx.filtered_epds) or len(ctx.assembled_components),
             rejected_epds=ctx.rejected_epds + ctx.missing_epds + ctx.unmatched_epds,
+            mass_composition=ctx.mass_composition,
+            regression_models=ctx.regression_models
+            if hasattr(ctx, "regression_models")
+            else None,
         )
 
         ctx.add_diagnostic(
@@ -592,10 +661,10 @@ class ValidateAveragedImpactsStage:
 
     def run(self, ctx: EpdPipelineContext) -> None:
         gwps = ctx.avg_gwps
-        T = gwps.get("Climate change-Total", {})
-        F = gwps.get("Climate change-Fossil", {})
-        B = gwps.get("Climate change-Biogenic", {})
-        L = gwps.get("Climate change-Land use and land use change", {})
+        T = gwps.get("GWP-Total", {})
+        F = gwps.get("GWP-Fossil", {})
+        B = gwps.get("GWP-Biogenic", {})
+        L = gwps.get("GWP-LULUC", {})
 
         # 1. Biogenic balance correction
         A = B.get("A1-A3", 0.0)

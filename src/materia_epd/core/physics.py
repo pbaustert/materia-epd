@@ -14,7 +14,6 @@ from materia_epd.core.constants import (
     ICONS,
     IDX_TO_NAME,
     NAME_TO_IDX,
-    POTENTIAL_CORRECTIONS,
     QUANTITIES,
     REASONABLE_RANGES,
     REL,
@@ -80,17 +79,6 @@ def check_properties_ranges(
                 message=f"{prop} {value} is outside "
                 f"the expected range ({min_val}-{max_val}).",
             )
-            if prop in POTENTIAL_CORRECTIONS.keys():
-                value = value * POTENTIAL_CORRECTIONS[prop]["factor"]
-                if min_val <= value <= max_val:
-                    kwargs[prop] = value
-                    logger.debug(
-                        f"Unit conversion {ICONS.WARNING}",
-                        epd_uuid=uuid,
-                        message=f"{prop} converted "
-                        f"from {POTENTIAL_CORRECTIONS[prop]['from']} "
-                        f"to {POTENTIAL_CORRECTIONS[prop]['to']}: {value}.",
-                    )
     return kwargs
 
 

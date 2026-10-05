@@ -21,7 +21,7 @@
     "VAT",
     "Southern Europe"
   ],
-  "ColorHex": "#DB9863",
+  "ColorHex": "#2F5D8A",
   "ColorRGBA": [
     0.86,
     0.6,
@@ -30,10 +30,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0465219,
-      "Climate change-Fossil": 0.0461234,
-      "Climate change-Biogenic": -0.0000089,
-      "Climate change-Land use and land use change": 0.0003884
+      "GWP-Total": 0.0465219,
+      "GWP-Fossil": 0.0461234,
+      "GWP-Biogenic": -0.0000089,
+      "GWP-LULUC": 0.0003884
     }
   }
 }

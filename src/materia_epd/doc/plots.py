@@ -227,7 +227,7 @@ def component_treemap(report: Dict[str, Any]) -> plt.Figure:
     cmap = plt.get_cmap("Blues")
     for i, (label, mass, rect) in enumerate(zip(labels, sizes, rects)):
         color = cmap(0.4 + 0.5 * i / max(len(rects), 1))
-        label = f"{label+" "+str(mass)} kg"
+        label = f"{label} {mass} kg"
         ax = _add_patch(ax, rect, color, label)
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)

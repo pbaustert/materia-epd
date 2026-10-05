@@ -271,7 +271,7 @@ def region_treemap(report: Dict[str, Any]) -> plt.Figure:
             sub_sizes,
             sub_rects,
         ):
-            label = f"{sub_label + " " + str(sub_size)}"
+            label = f"{sub_label} {sub_size}"
             color = get_location_color(sub_label).get("hex")
             ax = _add_patch(ax, sub_rect, color, label)
     ax.set_xlim(0, 100)

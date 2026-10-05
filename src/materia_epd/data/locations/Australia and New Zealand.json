@@ -11,7 +11,7 @@
     "NZL",
     "Australia and New Zealand"
   ],
-  "ColorHex": "#D6DB63",
+  "ColorHex": "#1B9E77",
   "ColorRGBA": [
     0.84,
     0.86,
@@ -20,10 +20,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2617721,
-      "Climate change-Fossil": 0.2611496,
-      "Climate change-Biogenic": 0.0001831,
-      "Climate change-Land use and land use change": 0.0002425
+      "GWP-Total": 0.2617721,
+      "GWP-Fossil": 0.2611496,
+      "GWP-Biogenic": 0.0001831,
+      "GWP-LULUC": 0.0002425
     }
   }
 }

@@ -15,7 +15,7 @@
     "WSM",
     "Polynesia"
   ],
-  "ColorHex": "#7EDB63",
+  "ColorHex": "#35978F",
   "ColorRGBA": [
     0.49,
     0.86,
@@ -24,10 +24,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2909659,
-      "Climate change-Fossil": 0.2903584,
-      "Climate change-Biogenic": 0.0002009,
-      "Climate change-Land use and land use change": 0.0002224
+      "GWP-Total": 0.2909659,
+      "GWP-Fossil": 0.2903584,
+      "GWP-Biogenic": 0.0002009,
+      "GWP-LULUC": 0.0002224
     }
   }
 }

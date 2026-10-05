@@ -21,7 +21,7 @@
     "VEN",
     "South America"
   ],
-  "ColorHex": "#7763DB",
+  "ColorHex": "#6A51A3",
   "ColorRGBA": [
     0.47,
     0.39,
@@ -30,10 +30,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1583647,
-      "Climate change-Fossil": 0.1574790,
-      "Climate change-Biogenic": 0.0001574,
-      "Climate change-Land use and land use change": 0.0006365
+      "GWP-Total": 0.1583647,
+      "GWP-Fossil": 0.1574790,
+      "GWP-Biogenic": 0.0001574,
+      "GWP-LULUC": 0.0006365
     }
   }
 }

@@ -13,7 +13,7 @@
     "SLV",
     "Central America"
   ],
-  "ColorHex": "#DB6376",
+  "ColorHex": "#A78BC8",
   "ColorRGBA": [
     0.86,
     0.39,
@@ -22,10 +22,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1908945,
-      "Climate change-Fossil": 0.1889546,
-      "Climate change-Biogenic": 0.0003696,
-      "Climate change-Land use and land use change": 0.0014639
+      "GWP-Total": 0.1908945,
+      "GWP-Fossil": 0.1889546,
+      "GWP-Biogenic": 0.0003696,
+      "GWP-LULUC": 0.0014639
     }
   }
 }

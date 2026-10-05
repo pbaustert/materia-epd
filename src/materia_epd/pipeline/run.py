@@ -9,7 +9,7 @@ from rich.panel import Panel
 from materia_epd.epd.generators import gen_epds, gen_xml_objects
 from materia_epd.epd.models import IlcdProcess
 from materia_epd.core.physics import Material
-from materia_epd.pipeline.report import write_report, draw_report
+from materia_epd.doc.report import write_report, draw_report
 from materia_epd.pipeline.pipeline import Pipeline
 from materia_epd.pipeline.recipes import RecipeFactory
 from materia_epd.pipeline.context import EpdPipelineContext

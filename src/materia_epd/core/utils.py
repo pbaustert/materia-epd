@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 
-def to_float(value, positive=False):
+def to_float(value, positive=False, default=False):
     """Convert to float; if positive=True, return None for <= 0."""
     try:
         f = float(value)
     except (TypeError, ValueError):
-        return None
+        return None if not default else default
     return f if (not positive or f > 0) else None
 
 

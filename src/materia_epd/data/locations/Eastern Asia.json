@@ -13,7 +13,7 @@
     "TWN",
     "Eastern Asia"
   ],
-  "ColorHex": "#96DB63",
+  "ColorHex": "#E15759",
   "ColorRGBA": [
     0.59,
     0.86,
@@ -22,10 +22,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.2583916,
-      "Climate change-Fossil": 0.2576429,
-      "Climate change-Biogenic": 0.0002033,
-      "Climate change-Land use and land use change": 0.0003844
+      "GWP-Total": 0.2583916,
+      "GWP-Fossil": 0.2576429,
+      "GWP-Biogenic": 0.0002033,
+      "GWP-LULUC": 0.0003844
     }
   }
 }

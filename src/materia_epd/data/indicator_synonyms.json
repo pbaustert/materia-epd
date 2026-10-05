@@ -1,5 +1,5 @@
 {
-  "Climate change-Total": [
+  "GWP-Total": [
     "Global Warming Potential total (GWP-total)",
     "Climate change - total (GWP-total)",
     "Global Warming Potential - total (GWP-total)",
@@ -10,7 +10,7 @@
     "Global Warming Potential total",
     "GWP (total)"
   ],
-  "Climate change-Fossil": [
+  "GWP-Fossil": [
     "Global Warming Potential fossil fuels (GWP-fossil)",
     "Climate change - fossil (GWP-fossil)",
     "Global Warming Potential - fossil fuels (GWP-fossil)",
@@ -20,7 +20,7 @@
     "GWP-fossil",
     "GWP (fossil)"
   ],
-  "Climate change-Biogenic": [
+  "GWP-Biogenic": [
     "Global Warming Potential biogenic (GWP-biogenic)",
     "Climate change - biogenic (GWP-biogenic)",
     "Global Warming Potential - biogenic (GWP-biogenic)",
@@ -30,7 +30,7 @@
     "GWP-biogenic",
     "GWP (biogenic)"
   ],
-  "Climate change-Land use and land use change": [
+  "GWP-LULUC": [
     "Global Warming Potential luluc (GWP-luluc)",
     "Climate change - land use and changes in land use (GWP-luluc)",
     "Global Warming Potential - land use and land use change (GWP-luluc)",

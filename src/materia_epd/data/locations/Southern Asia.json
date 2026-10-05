@@ -14,7 +14,7 @@
     "PAK",
     "Southern Asia"
   ],
-  "ColorHex": "#63DB85",
+  "ColorHex": "#D95F02",
   "ColorRGBA": [
     0.39,
     0.86,
@@ -23,10 +23,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1763713,
-      "Climate change-Fossil": 0.1755984,
-      "Climate change-Biogenic": 0.0001804,
-      "Climate change-Land use and land use change": 0.0004925
+      "GWP-Total": 0.1763713,
+      "GWP-Fossil": 0.1755984,
+      "GWP-Biogenic": 0.0001804,
+      "GWP-LULUC": 0.0004925
     }
   }
 }

@@ -22,7 +22,7 @@
     "TGO",
     "Western Africa"
   ],
-  "ColorHex": "#DBAB63",
+  "ColorHex": "#31A354",
   "ColorRGBA": [
     0.86,
     0.67,
@@ -31,10 +31,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0805954,
-      "Climate change-Fossil": 0.0802503,
-      "Climate change-Biogenic": 0.0000055,
-      "Climate change-Land use and land use change": 0.0002969
+      "GWP-Total": 0.0805954,
+      "GWP-Fossil": 0.0802503,
+      "GWP-Biogenic": 0.0000055,
+      "GWP-LULUC": 0.0002969
     }
   }
 }

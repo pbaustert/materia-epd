@@ -10,7 +10,7 @@
     "USA",
     "Northern America"
   ],
-  "ColorHex": "#6399DB",
+  "ColorHex": "#8C6BB1",
   "ColorRGBA": [
     0.39,
     0.6,
@@ -19,10 +19,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1425327,
-      "Climate change-Fossil": 0.1413564,
-      "Climate change-Biogenic": 0.0003517,
-      "Climate change-Land use and land use change": 0.0007641
+      "GWP-Total": 0.1425327,
+      "GWP-Fossil": 0.1413564,
+      "GWP-Biogenic": 0.0003517,
+      "GWP-LULUC": 0.0007641
     }
   }
 }

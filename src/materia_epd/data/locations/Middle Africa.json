@@ -14,7 +14,7 @@
     "TCD",
     "Middle Africa"
   ],
-  "ColorHex": "#63DBAB",
+  "ColorHex": "#238B45",
   "ColorRGBA": [
     0.39,
     0.86,
@@ -23,10 +23,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1098958,
-      "Climate change-Fossil": 0.1091550,
-      "Climate change-Biogenic": 0.0000972,
-      "Climate change-Land use and land use change": 0.0005839
+      "GWP-Total": 0.1098958,
+      "GWP-Fossil": 0.1091550,
+      "GWP-Biogenic": 0.0000972,
+      "GWP-LULUC": 0.0005839
     }
   }
 }

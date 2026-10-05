@@ -10,7 +10,7 @@
     "ZAF",
     "Southern Africa"
   ],
-  "ColorHex": "#AF63DB",
+  "ColorHex": "#006D2C",
   "ColorRGBA": [
     0.68,
     0.39,
@@ -19,10 +19,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1655759,
-      "Climate change-Fossil": 0.1643808,
-      "Climate change-Biogenic": 0.0002180,
-      "Climate change-Land use and land use change": 0.0008825
+      "GWP-Total": 0.1655759,
+      "GWP-Fossil": 0.1643808,
+      "GWP-Biogenic": 0.0002180,
+      "GWP-LULUC": 0.0008825
     }
   }
 }

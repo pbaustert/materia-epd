@@ -27,7 +27,7 @@
     "ZWE",
     "Eastern Africa"
   ],
-  "ColorHex": "#CF63DB",
+  "ColorHex": "#A1D99B",
   "ColorRGBA": [
     0.81,
     0.39,
@@ -36,10 +36,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1966630,
-      "Climate change-Fossil": 0.1947148,
-      "Climate change-Biogenic": 0.0003751,
-      "Climate change-Land use and land use change": 0.0014628
+      "GWP-Total": 0.1966630,
+      "GWP-Fossil": 0.1947148,
+      "GWP-Biogenic": 0.0003751,
+      "GWP-LULUC": 0.0014628
     }
   }
 }

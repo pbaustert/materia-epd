@@ -12,7 +12,7 @@
     "TUN",
     "Northern Africa"
   ],
-  "ColorHex": "#63DB81",
+  "ColorHex": "#74C476",
   "ColorRGBA": [
     0.39,
     0.86,
@@ -21,10 +21,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.0552545,
-      "Climate change-Fossil": 0.0549494,
-      "Climate change-Biogenic": -0.0000195,
-      "Climate change-Land use and land use change": 0.0002989
+      "GWP-Total": 0.0552545,
+      "GWP-Fossil": 0.0549494,
+      "GWP-Biogenic": -0.0000195,
+      "GWP-LULUC": 0.0002989
     }
   }
 }

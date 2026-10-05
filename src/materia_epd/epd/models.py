@@ -8,6 +8,7 @@ from typing import Union
 
 from materia_epd.core.constants import (
     ATTR,
+    METHOD_UUIDS,
     FLOW_PROPERTY_MAPPING,
     ILCD_QUANTITY_LABELS,
     NS,
@@ -114,6 +115,7 @@ class IlcdProcess:
     def __post_init__(self):
         self._get_uuid()
         self._get_loc()
+        self._get_version()
 
     def _get_uuid(self) -> str | None:
         node = self.root.find(XP.UUID, NS)
@@ -122,7 +124,34 @@ class IlcdProcess:
     def _get_loc(self) -> str | None:
         loc_node = self.root.find(XP.LOCATION, NS)
         loc_code = loc_node.attrib.get(ATTR.LOCATION) if loc_node is not None else None
-        self.loc = ilcd_to_iso_location(loc_code) if loc_code else None
+        self.loc = ilcd_to_iso_location(loc_code) if loc_code else "GLO"
+
+    def _get_version(self) -> str | None:
+        node = self.root.find(XP.VERSION, NS)
+        self.version = node.text.strip() if (node is not None and node.text) else None
+
+    def get_names(self) -> dict[str, str]:
+        names = {}
+        for node in self.root.findall(XP.NAME, NS):
+            if node is None or not node.text or not node.text.strip():
+                continue
+            lang = node.attrib.get(ATTR.LANG, "").strip().lower() or "und"
+            names[lang] = node.text.strip()
+        self.names = names
+
+    def get_hs_class(self) -> list[dict[str, str]]:
+        hs_node = self.root.find(XP.HS_CLASSIFICATION, NS)
+        top_class = hs_node.find(XP.CLASS_LEVEL_2, NS)
+        self.hs_class = top_class.attrib.get(ATTR.CLASS_ID)
+
+        self.hs_classes = [
+            {
+                "level": cls.attrib.get("level", "").strip(),
+                "class_id": cls.attrib.get("classId", "").strip(),
+                "text": (cls.text or "").strip(),
+            }
+            for cls in (hs_node.findall("common:class", NS) if hs_node else [])
+        ]
 
     def get_ref_flow(self) -> IlcdFlow:
         ref_flow_id = self.root.findtext(XP.QUANT_REF, namespaces=NS).strip()
@@ -215,11 +244,6 @@ class IlcdProcess:
 
         self.lcia_results = results
 
-    def get_hs_class(self) -> str:
-        hs_node = self.root.find(XP.HS_CLASSIFICATION, NS)
-        top_class = hs_node.find(XP.CLASS_LEVEL_2, NS)
-        self.hs_class = top_class.attrib.get(ATTR.CLASS_ID)
-
     def get_market(self) -> dict:
         self.market = get_market_shares(self.loc, self.hs_class)
         return self.market
@@ -239,19 +263,14 @@ class IlcdProcess:
             return None
 
         lcia_map = {
-            next(
-                (
-                    sd.text.strip()
-                    for sd in r.findall(f"{XP.REF_TO_LCIA_METHOD}/{XP.SHORT_DESC}", NS)
-                    if sd.attrib.get(ATTR.LANG) == "en"
-                ),
-                "Unknown",
-            ): r
+            r.find(XP.REF_TO_LCIA_METHOD, NS).attrib["refObjectId"]: r
             for r in self.root.findall(XP.LCIA_RESULT, NS)
+            if r.find(XP.REF_TO_LCIA_METHOD, NS) is not None
         }
 
         for ind, stages in results.items():
-            r = lcia_map.get(ind)
+            method_uuid = METHOD_UUIDS.get(ind)
+            r = lcia_map.get(method_uuid)
             if r is None:
                 continue
 

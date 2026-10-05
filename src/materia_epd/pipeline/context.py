@@ -27,6 +27,7 @@ class EpdPipelineContext:
     component_impacts: dict[str, dict[str, dict[str, float]]] = field(
         default_factory=dict
     )
+    mass_composition: dict[str, Any] | None = None
     results_registry: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     used_mass_fallback: bool = False

@@ -23,7 +23,7 @@
     "YEM",
     "Western Asia"
   ],
-  "ColorHex": "#D763DB",
+  "ColorHex": "#B55D3D",
   "ColorRGBA": [
     0.84,
     0.39,
@@ -32,10 +32,10 @@
   ],
   "TransportImpactPerKgByTarget": {
     "LUX": {
-      "Climate change-Total": 0.1130423,
-      "Climate change-Fossil": 0.1122316,
-      "Climate change-Biogenic": 0.0003283,
-      "Climate change-Land use and land use change": 0.0004401
+      "GWP-Total": 0.1130423,
+      "GWP-Fossil": 0.1122316,
+      "GWP-Biogenic": 0.0003283,
+      "GWP-LULUC": 0.0004401
     }
   }
 }

@@ -91,6 +91,13 @@ The `<generic_processes_dir>` folder should be structured like this:
 
 ```
 
+Instead of XML skeletons in `processes/`, a generic product can be described by a JSON object in
+`jsons/<generic-uuid>.json` (fields such as `ID`, `Product Reference (French)`, `Cat. 1 (French)`,
+`Declared Unit`, `Market Shares`, `HS Code`; unknown fields are ignored). When `processes/` has no
+skeleton for an ID that has a `matches/<ID>.json` file, the process and its reference flow are built from
+`templates/GenPro_template.xml` / `GenRef_template.xml` (or the templates bundled with the package), and
+the market shares of the JSON object are used.
+
 #### Source EPDs (`<epd_processes_dir>`)
 
 ```
@@ -116,6 +123,63 @@ Files in `matches/` are named after the corresponding generic product UUID:
 ```
 
 `type` is `"average"`, `"market-average"`, `"assembled"` or `"regression"`. The `uuids` list links to process files in the source EPD `processes/` folder.
+
+### Run from a file server (from-url mode)
+
+Instead of local folders, the source EPDs can be fetched from an HTTP file server that serves
+`<base_url>/xml/<uuid>.xml` (process datasets) and `<base_url>/flows/<uuid>.xml` (flows):
+
+```console
+python -m materia_epd --from-url spec.json --base-url http://erp-canaria.private.list.lu:44003/raw -o <output_dir>
+```
+
+The base URL can also be given as `base_url` in the spec or through the `MATERIA_EPD_BASE_URL`
+environment variable. The spec lists the generic processes to compute:
+
+```json
+{
+  "base_url": "http://erp-canaria.private.list.lu:44003/raw",
+  "processes": [
+    {
+      "uuid": "<generic-uuid, random if omitted>",
+      "name": "Generic concrete slab",
+      "location": "LU",
+      "matches": { "type": "average", "uuids": ["<epd-uuid-1>", "<epd-uuid-2>"] }
+    }
+  ]
+}
+```
+
+A plain list of EPD UUIDs (`["<uuid-1>", "<uuid-2>"]`) is a shorthand for one `average` process.
+
+A process can also be a **generic EPD JSON object** (the `jsons/<ID>.json` format) with its matches,
+either as `{"generic": {...}, "matches": {...}}` or as the object with an embedded `"matches"` key. The
+export of the MECO EPD website, `{"project_name": "...", "data": [<generic EPD>, ...]}`, is accepted
+as a spec as is. The generic process is then built from the templates (UUID = `ID`, declared unit, HS
+code, market shares from the object) instead of a source EPD.
+`matches` has the same format as the files in `matches/` (or use `"uuids": [...]` with an optional
+`"type"`). Optional per-process keys:
+
+| key | meaning |
+| --- | --- |
+| `template` | UUID of the source EPD used as skeleton for the generic process (default: first fetched EPD) |
+| `template_url`, `template_flow_url` | URLs of a ready generic process XML and its reference flow, used instead of a source EPD |
+| `declared_unit` | `mass`, `volume`, `surface`, `length` or `unit_count` (default: the template's) |
+| `location` | ILCD location code of the generic process, e.g. `LU` (default: the template's) |
+| `hs_class` | HS code, needed for `market-average` / `regression` and the A4 market transport |
+
+A skeleton built from a source EPD gets the new UUID and name, a renamed reference flow and a
+declared amount of 1 unit; only the LCIA indicators/modules present in that EPD are written to the
+output process XML. Outputs (`processes/`, `flows/`, `reports/`) are as in local mode, plus
+`from_url_summary.json`. From Python:
+
+```python
+from materia_epd.pipeline.run import run_materia_from_url
+
+result = run_materia_from_url(["<uuid-1>", "<uuid-2>"], output_path=None,
+                              base_url="http://erp-canaria.private.list.lu:44003/raw")
+result["processes"][0]["avg_impacts"]["Climate change-Total"]["A1-A3"]
+```
 
 ---
 

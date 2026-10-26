@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<processDataSet
+    xmlns="http://lca.jrc.it/ILCD/Process"
+    xmlns:common="http://lca.jrc.it/ILCD/Common"
+    xmlns:epd="http://www.iai.kit.edu/EPD/2013"
+    xmlns:epd2="http://www.indata.network/EPD/2019"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    epd2:epd-version="1.2"
+    locations="../ILCDLocations.xml"
+    version="1.1">
+  <processInformation>
+    <dataSetInformation>
+      <common:UUID>00000000-0000-0000-0000-000000000000</common:UUID>
+      <name>
+        <baseName xml:lang="en">Name</baseName>
+        <baseName xml:lang="de">Name</baseName>
+        <baseName xml:lang="fr">Nom</baseName>
+        <functionalUnitFlowProperties xml:lang="en"></functionalUnitFlowProperties>
+      </name>
+      <classificationInformation>
+        <common:classification name="HS Classification">
+          <common:class level="0" classId="R">Section</common:class>
+          <common:class level="1" classId="XX">Chapter </common:class>
+          <common:class level="2" classId="XXYY">Heading</common:class>
+          <common:class level="3" classId="XXYYZZ">Subheading</common:class>
+        </common:classification>
+        <common:classification name="EE Classification">
+          <common:class level="0" classId="Description">Cat. 1</common:class>
+          <common:class level="1" classId="Description">Cat. 2</common:class>
+          <common:class level="2" classId="Description">Cat. 3</common:class>
+        </common:classification>
+      </classificationInformation>
+      <common:other>
+        <epd:safetyMargins>
+          <epd:margins>0</epd:margins>
+          <epd:description xml:lang="en">Data quality level description</epd:description>
+        </epd:safetyMargins>
+      </common:other>
+    </dataSetInformation>
+    <quantitativeReference type="Reference flow(s)">
+      <referenceToReferenceFlow>1</referenceToReferenceFlow>
+    </quantitativeReference>
+    <time>
+      <common:referenceYear>2025</common:referenceYear>
+      <common:dataSetValidUntil>2030</common:dataSetValidUntil>
+      <common:timeRepresentativenessDescription xml:lang="en">Annual average</common:timeRepresentativenessDescription>
+    </time>
+    <geography>
+      <locationOfOperationSupplyOrProduction location="LU">
+        <descriptionOfRestrictions xml:lang="en">The data set is representative for the Luxembourgish market.</descriptionOfRestrictions>
+      </locationOfOperationSupplyOrProduction>
+    </geography>
+    <technology>
+      <technologyDescriptionAndIncludedProcesses xml:lang="en">Generated technological description.</technologyDescriptionAndIncludedProcesses>
+      <technologyDescriptionAndIncludedProcesses xml:lang="de">Generierte technologische Beschreibung.</technologyDescriptionAndIncludedProcesses>
+      <technologyDescriptionAndIncludedProcesses xml:lang="fr">Description technologique générée.</technologyDescriptionAndIncludedProcesses>
+      <technologicalApplicability xml:lang="en">This product can be used in construction.</technologicalApplicability>
+    </technology>
+  </processInformation>
+  <modellingAndValidation>
+    <LCIMethodAndAllocation>
+      <typeOfDataSet>EPD</typeOfDataSet>
+      <common:other>
+        <epd:subType>generic dataset</epd:subType>
+      </common:other>
+    </LCIMethodAndAllocation>
+    <dataSourcesTreatmentAndRepresentativeness>
+      <referenceToDataSource refObjectId="00000000-0000-0000-0000-000000000000" version="00.00.000" type="source data set" uri="../sources/00000000-0000-0000-0000-000000000000.xml">
+        <common:shortDescription xml:lang="en">Description</common:shortDescription>
+      </referenceToDataSource>
+    </dataSourcesTreatmentAndRepresentativeness>
+    <validation>
+      <review type="Dependent internal review">
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="e10ce2a1-fab3-4e3c-8703-b13a7e1d0d05" version="00.01.000" type="contact data set" uri="../contacts/e10ce2a1-fab3-4e3c-8703-b13a7e1d0d05.xml">
+          <common:shortDescription xml:lang="en">CCD MECO</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+      </review>
+    </validation>
+  </modellingAndValidation>
+  <administrativeInformation>
+    <dataGenerator>
+      <common:referenceToPersonOrEntityGeneratingTheDataSet refObjectId="3dc32f52-ebeb-41a9-9c79-c39364b358a5" version="00.02.000" type="contact data set" uri="../contacts/3dc32f52-ebeb-41a9-9c79-c39364b358a5.xml">
+        <common:shortDescription xml:lang="en">Luxembourg Institute of Science and Technology (LIST)</common:shortDescription>
+      </common:referenceToPersonOrEntityGeneratingTheDataSet>
+    </dataGenerator>
+    <dataEntryBy>
+      <common:timeStamp>2000-01-01T00:00:00+00:00</common:timeStamp>
+      <common:referenceToDataSetFormat refObjectId="a97a0155-0234-4b87-b4ce-a45da52f2a40" version="01.00.000" type="source data set" uri="../sources/a97a0155-0234-4b87-b4ce-a45da52f2a40.xml">
+        <common:shortDescription xml:lang="en">ILCD format 1.1</common:shortDescription>
+      </common:referenceToDataSetFormat>
+      <common:referenceToDataSetFormat refObjectId="a29449fd-aa2f-4de8-b5d7-4b06b43c6fde" version="00.01.000" type="source data set" uri="../sources/a29449fd-aa2f-4de8-b5d7-4b06b43c6fde.xml">
+        <common:shortDescription xml:lang="en">EPD Data Format Extensions v1.2</common:shortDescription>
+      </common:referenceToDataSetFormat>
+      <common:referenceToPersonOrEntityEnteringTheData refObjectId="3dc32f52-ebeb-41a9-9c79-c39364b358a5" version="00.02.000" type="contact data set" uri="../contacts/3dc32f52-ebeb-41a9-9c79-c39364b358a5.xml">
+        <common:shortDescription xml:lang="en">Luxembourg Institute of Science and Technology (LIST)</common:shortDescription>
+      </common:referenceToPersonOrEntityEnteringTheData>
+    </dataEntryBy>
+    <publicationAndOwnership>
+      <common:dataSetVersion>00.00.000</common:dataSetVersion>
+      <common:referenceToRegistrationAuthority refObjectId="e10ce2a1-fab3-4e3c-8703-b13a7e1d0d05" version="00.01.000" type="contact data set" uri="../contacts/e10ce2a1-fab3-4e3c-8703-b13a7e1d0d05.xml">
+        <common:shortDescription xml:lang="en">CCD MECO</common:shortDescription>
+      </common:referenceToRegistrationAuthority>
+      <common:referenceToOwnershipOfDataSet refObjectId="3dc32f52-ebeb-41a9-9c79-c39364b358a5" version="00.02.000" type="contact data set" uri="../contacts/3dc32f52-ebeb-41a9-9c79-c39364b358a5.xml">
+        <common:shortDescription xml:lang="en">Luxembourg Institute of Science and Technology (LIST)</common:shortDescription>
+      </common:referenceToOwnershipOfDataSet>
+      <common:copyright>true</common:copyright>
+      <common:licenseType>Free of charge for all users and uses</common:licenseType>
+      <common:accessRestrictions xml:lang="en">The license conditions as stated on TBD.</common:accessRestrictions>
+    </publicationAndOwnership>
+  </administrativeInformation>
+  <exchanges>
+    <exchange dataSetInternalID="1">
+      <referenceToFlowDataSet refObjectId="00000000-0000-0000-0000-000000000000" version="00.00.000" type="flow data set" uri="../flows/00000000-0000-0000-0000-000000000000.xml">
+        <common:shortDescription xml:lang="en">Product reference</common:shortDescription>
+      </referenceToFlowDataSet>
+      <meanAmount>1</meanAmount>
+    </exchange>
+  </exchanges>
+  <LCIAResults>
+    <LCIAResult>
+      <referenceToLCIAMethodDataSet refObjectId="a7ea142a-9749-11ed-a8fc-0242ac120002" version="24.01.000" type="LCIA method data set" uri="../lciamethods/a7ea142a-9749-11ed-a8fc-0242ac120002.xml">
+        <common:shortDescription xml:lang="en">Climate change-Total</common:shortDescription>
+      </referenceToLCIAMethodDataSet>
+      <common:other>
+        <epd:amount epd:module="A1-A3">0</epd:amount>
+        <epd:amount epd:module="A4">0</epd:amount>
+        <epd:amount epd:module="C1">0</epd:amount>
+        <epd:amount epd:module="C2">0</epd:amount>
+        <epd:amount epd:module="C3">0</epd:amount>
+        <epd:amount epd:module="C4">0</epd:amount>
+        <epd:amount epd:module="D">0</epd:amount>
+        <epd:referenceToUnitGroupDataSet refObjectId="1ebf3012-d0db-4de2-aefd-ef30cedb0be1" version="25.00.000" type="unit group data set" uri="../unitgroups/1ebf3012-d0db-4de2-aefd-ef30cedb0be1.xml">
+          <common:shortDescription xml:lang="en">kg CO2 eq.</common:shortDescription>
+        </epd:referenceToUnitGroupDataSet>
+      </common:other>
+    </LCIAResult>
+    <LCIAResult>
+      <referenceToLCIAMethodDataSet refObjectId="a7ea19c0-9749-11ed-a8fc-0242ac120002" version="24.01.000" type="LCIA method data set" uri="../lciamethods/a7ea19c0-9749-11ed-a8fc-0242ac120002.xml">
+        <common:shortDescription xml:lang="en">Climate change-Fossil</common:shortDescription>
+      </referenceToLCIAMethodDataSet>
+      <common:other>
+        <epd:amount epd:module="A1-A3">0</epd:amount>
+        <epd:amount epd:module="A4">0</epd:amount>
+        <epd:amount epd:module="C1">0</epd:amount>
+        <epd:amount epd:module="C2">0</epd:amount>
+        <epd:amount epd:module="C3">0</epd:amount>
+        <epd:amount epd:module="C4">0</epd:amount>
+        <epd:amount epd:module="D">0</epd:amount>
+        <epd:referenceToUnitGroupDataSet refObjectId="1ebf3012-d0db-4de2-aefd-ef30cedb0be1" version="25.00.000" type="unit group data set" uri="../unitgroups/1ebf3012-d0db-4de2-aefd-ef30cedb0be1.xml">
+          <common:shortDescription xml:lang="en">kg CO2 eq.</common:shortDescription>
+        </epd:referenceToUnitGroupDataSet>
+      </common:other>
+    </LCIAResult>
+    <LCIAResult>
+      <referenceToLCIAMethodDataSet refObjectId="a7ea186c-9749-11ed-a8fc-0242ac120002" version="24.01.000" type="LCIA method data set" uri="../lciamethods/a7ea186c-9749-11ed-a8fc-0242ac120002.xml">
+        <common:shortDescription xml:lang="en">Climate change-Biogenic</common:shortDescription>
+      </referenceToLCIAMethodDataSet>
+      <common:other>
+        <epd:amount epd:module="A1-A3">0</epd:amount>
+        <epd:amount epd:module="A4">0</epd:amount>
+        <epd:amount epd:module="C1">0</epd:amount>
+        <epd:amount epd:module="C2">0</epd:amount>
+        <epd:amount epd:module="C3">0</epd:amount>
+        <epd:amount epd:module="C4">0</epd:amount>
+        <epd:amount epd:module="D">0</epd:amount>
+        <epd:referenceToUnitGroupDataSet refObjectId="1ebf3012-d0db-4de2-aefd-ef30cedb0be1" version="25.00.000" type="unit group data set" uri="../unitgroups/1ebf3012-d0db-4de2-aefd-ef30cedb0be1.xml">
+          <common:shortDescription xml:lang="en">kg CO2 eq.</common:shortDescription>
+        </epd:referenceToUnitGroupDataSet>
+      </common:other>
+    </LCIAResult>
+    <LCIAResult>
+      <referenceToLCIAMethodDataSet refObjectId="a7ea1ae2-9749-11ed-a8fc-0242ac120002" version="24.01.000" type="LCIA method data set" uri="../lciamethods/a7ea1ae2-9749-11ed-a8fc-0242ac120002.xml">
+        <common:shortDescription xml:lang="en">Climate change-Land use and land use change</common:shortDescription>
+      </referenceToLCIAMethodDataSet>
+      <common:other>
+        <epd:amount epd:module="A1-A3">0</epd:amount>
+        <epd:amount epd:module="A4">0</epd:amount>
+        <epd:amount epd:module="C1">0</epd:amount>
+        <epd:amount epd:module="C2">0</epd:amount>
+        <epd:amount epd:module="C3">0</epd:amount>
+        <epd:amount epd:module="C4">0</epd:amount>
+        <epd:amount epd:module="D">0</epd:amount>
+        <epd:referenceToUnitGroupDataSet refObjectId="1ebf3012-d0db-4de2-aefd-ef30cedb0be1" version="25.00.000" type="unit group data set" uri="../unitgroups/1ebf3012-d0db-4de2-aefd-ef30cedb0be1.xml">
+          <common:shortDescription xml:lang="en">kg CO2 eq.</common:shortDescription>
+        </epd:referenceToUnitGroupDataSet>
+      </common:other>
+    </LCIAResult>
+  </LCIAResults>
+</processDataSet>

@@ -30,3 +30,18 @@ def gen_epds(folder_path, logger, uuids=None):
     ):
         yield IlcdProcess(root=root, path=path)
     logger.info("XML processes files parsed")
+
+
+def gen_epds_from_url(source, logger, uuids, errors=None):
+    """Creates a generator of `IlcdProcess` instances fetched from a `UrlSource`.
+
+    The EPDs resolve their reference flows through the same source. UUIDs that cannot
+    be fetched are skipped and recorded in `errors` (uuid -> message), if given.
+    """
+    for url, root in track(
+        source.gen_processes(uuids, errors=errors),
+        description="Fetching EPD XMLs from file server",
+        transient=True,
+    ):
+        yield IlcdProcess(root=root, path=url, flow_loader=source.flow_root)
+    logger.info("XML processes fetched from file server", base_url=source.base_url)

@@ -34,6 +34,9 @@ class EpdPipelineContext:
     active_material_kwargs: dict[str, Any] | None = None
     active_dec_unit: str | None = None
 
+    # Relative paths of the files written for this process (empty if none written)
+    outputs: dict[str, str] = field(default_factory=dict)
+
     diagnostics: list[dict[str, Any]] = field(default_factory=list)
     stopped: bool = False
     success: bool = True

@@ -4,7 +4,7 @@ import os
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 from materia_epd.core.constants import (
     ATTR,
@@ -21,6 +21,14 @@ from materia_epd.geo.locations import ilcd_to_iso_location
 from materia_epd.io.files import latest_flow_file, read_json_file, write_xml_root
 from materia_epd.metrics.normalize import normalize_module_values
 from materia_epd.resources import get_indicator_synonyms, get_market_shares
+
+
+def reference_flow_uuid(root: ET.Element) -> str | None:
+    """Return the UUID of the reference flow of a process dataset."""
+    ref_flow_id = (root.findtext(XP.QUANT_REF, namespaces=NS) or "").strip()
+    exchange = root.find(XP.exchange_by_id(ref_flow_id), NS) if ref_flow_id else None
+    ref = exchange.find(XP.REF_TO_FLOW, NS) if exchange is not None else None
+    return ref.attrib.get(ATTR.REF_OBJECT_ID) if ref is not None else None
 
 
 @dataclass
@@ -106,10 +114,13 @@ class IlcdFlow:
 @dataclass
 class IlcdProcess:
     root: ET.Element
-    path: Path
+    path: Path  # or the source URL for datasets fetched from a file server
     uuid: Union[str, None] = None
     loc: Union[None, str] = None
     ref_flow: Union[IlcdFlow, None] = None
+    # Returns the flow XML root for a flow UUID (e.g. `UrlSource.flow_root`). When
+    # None, the flow is read from the `flows` folder next to the process folder.
+    flow_loader: Union[Callable[[str], ET.Element], None] = None
 
     def __post_init__(self):
         self._get_uuid()
@@ -130,14 +141,21 @@ class IlcdProcess:
         ref_flow_uuid = ref_flow_exchange.find(XP.REF_TO_FLOW, NS).attrib.get(
             ATTR.REF_OBJECT_ID
         )
-        flows_folder = self.path.parent.parent / "flows"
-        flow_file = latest_flow_file(flows_folder, ref_flow_uuid)
+        if self.flow_loader is not None:
+            try:
+                self.ref_flow = IlcdFlow(root=self.flow_loader(ref_flow_uuid))
+            except Exception as e:
+                e.add_note(f"Error loading flow {ref_flow_uuid}")
+                raise e
+        else:
+            flows_folder = self.path.parent.parent / "flows"
+            flow_file = latest_flow_file(flows_folder, ref_flow_uuid)
 
-        try:
-            self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
-        except Exception as e:
-            e.add_note(f"Error parsing {flow_file.name}")
-            raise e
+            try:
+                self.ref_flow = IlcdFlow(root=ET.parse(flow_file).getroot())
+            except Exception as e:
+                e.add_note(f"Error parsing {flow_file.name}")
+                raise e
 
         exchange_amount = (
             to_float(
@@ -215,13 +233,21 @@ class IlcdProcess:
 
         self.lcia_results = results
 
-    def get_hs_class(self) -> str:
+    def get_hs_class(self) -> str | None:
+        # Source EPDs used as skeletons (from-url mode) usually have no HS class.
         hs_node = self.root.find(XP.HS_CLASSIFICATION, NS)
-        top_class = hs_node.find(XP.CLASS_LEVEL_2, NS)
-        self.hs_class = top_class.attrib.get(ATTR.CLASS_ID)
+        top_class = hs_node.find(XP.CLASS_LEVEL_2, NS) if hs_node is not None else None
+        self.hs_class = (
+            top_class.attrib.get(ATTR.CLASS_ID) if top_class is not None else None
+        )
+        return self.hs_class
 
     def get_market(self) -> dict:
-        self.market = get_market_shares(self.loc, self.hs_class)
+        # Without location or HS class there is no market to look up (or generate).
+        if not self.loc or not getattr(self, "hs_class", None):
+            self.market = {}
+        else:
+            self.market = get_market_shares(self.loc, self.hs_class)
         return self.market
 
     def get_matches(self) -> dict:

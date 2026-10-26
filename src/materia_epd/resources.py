@@ -27,6 +27,26 @@ def iter_json_from_package_folder(*folder_parts: str):
 
 
 @lru_cache(maxsize=1)
+def list_locations() -> list[dict]:
+    """Locations known to materia-epd (ISO3 countries, "RoW", regions), countries first.
+
+    Used e.g. to offer the valid keys of a generic EPD's "Market Shares".
+    """
+    out = []
+    for path, data in iter_json_from_package_folder("locations"):
+        code = data.get("ISO3") or data.get("Name") or path.stem
+        out.append(
+            {"code": code, "name": data.get("Name") or code, "class": data.get("Class")}
+        )
+    return sorted(out, key=lambda x: (x["class"] != "Country", x["name"]))
+
+
+def templates_dir():
+    """Context manager yielding the folder of the bundled GenPro/GenRef templates."""
+    return as_file(files(__package__).joinpath("data", "templates"))
+
+
+@lru_cache(maxsize=1)
 def get_regions_mapping():
     return load_json_from_package("regions_mapping.json")
 

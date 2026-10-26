@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flowDataSet
+    xmlns="http://lca.jrc.it/ILCD/Flow"
+    xmlns:common="http://lca.jrc.it/ILCD/Common"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    locations="../ILCDLocations.xml"
+    version="1.1"
+    xmlns:mm="http://www.matml.org/">
+  <flowInformation>
+    <dataSetInformation>
+      <common:UUID>00000000-0000-0000-0000-000000000000</common:UUID>
+      <name>
+        <baseName xml:lang="en">Name</baseName>
+        <baseName xml:lang="de">Name</baseName>
+        <baseName xml:lang="fr">Nom</baseName>
+      </name>
+    </dataSetInformation>
+    <quantitativeReference>
+      <referenceToReferenceFlowProperty>0</referenceToReferenceFlowProperty>
+    </quantitativeReference>
+  </flowInformation>
+  <modellingAndValidation>
+    <LCIMethod>
+      <typeOfDataSet>Product flow</typeOfDataSet>
+    </LCIMethod>
+  </modellingAndValidation>
+  <administrativeInformation>
+    <dataEntryBy>
+      <common:timeStamp>2000-01-01T00:00:00+00:00</common:timeStamp>
+      <common:referenceToDataSetFormat refObjectId="a97a0155-0234-4b87-b4ce-a45da52f2a40" version="01.00.000" type="source data set" uri="../sources/a97a0155-0234-4b87-b4ce-a45da52f2a40.xml">
+        <common:shortDescription xml:lang="en">ILCD format 1.1</common:shortDescription>
+      </common:referenceToDataSetFormat>
+      <common:referenceToDataSetFormat refObjectId="a29449fd-aa2f-4de8-b5d7-4b06b43c6fde" version="00.01.000" type="source data set" uri="../sources/a29449fd-aa2f-4de8-b5d7-4b06b43c6fde.xml">
+        <common:shortDescription xml:lang="en">EPD Data Format Extensions v1.2</common:shortDescription>
+      </common:referenceToDataSetFormat>
+    </dataEntryBy>
+    <publicationAndOwnership>
+      <common:dataSetVersion>00.00.000</common:dataSetVersion>
+    </publicationAndOwnership>
+  </administrativeInformation>
+  <flowProperties>
+    <flowProperty dataSetInternalID="0">
+      <referenceToFlowPropertyDataSet refObjectId="00000000-0000-0000-0000-000000000000" version="00.00.000" type="flow property data set" uri="../flowproperties/00000000-0000-0000-0000-000000000000.xml">
+        <common:shortDescription xml:lang="en">Unit1</common:shortDescription>
+      </referenceToFlowPropertyDataSet>
+      <meanValue>0</meanValue>
+    </flowProperty>
+    <flowProperty dataSetInternalID="1">
+      <referenceToFlowPropertyDataSet refObjectId="00000000-0000-0000-0000-000000000000" version="00.00.000" type="flow property data set" uri="../flowproperties/00000000-0000-0000-0000-000000000000.xml">
+        <common:shortDescription xml:lang="en">Unit2</common:shortDescription>
+      </referenceToFlowPropertyDataSet>
+      <meanValue>0</meanValue>
+    </flowProperty>
+  </flowProperties>
+</flowDataSet>

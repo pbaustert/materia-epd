@@ -2,6 +2,57 @@
 Changelog
 =========
 
+Unreleased (branch `web-site-version`)
+--------------------------------------
+
+- Generic EPD JSON objects (the ``jsons/<ID>.json`` format: "ID", "Product Reference
+  (French)", "Cat. 1-3", "Declared Unit", "Market Shares", "HS Code", ...) are turned into
+  generic process + reference flow XMLs from the GenPro/GenRef templates
+  (new `materia_epd.epd.generic`: `build_generic_datasets`, `generic_process_from_json`).
+  The templates are bundled in `materia_epd/data/templates`; `<gen>/templates` takes
+  precedence in local mode. The generic ID is the process UUID, the reference flow declares
+  1 "Declared Unit", and "Market Shares" from the object are used as the market (unknown
+  location codes are ignored with a warning). Unused fields, e.g. the website's
+  `cptax_classification`, are ignored.
+- from-url mode accepts these objects: per process `{"generic": {...}, "matches": {...}}`,
+  a generic object with an embedded `"matches"`, or the website export
+  `{"project_name": ..., "data": [...]}` as a whole spec.
+- Local mode also builds generic processes from `<gen>/jsons/<ID>.json` +
+  `<gen>/matches/<ID>.json` when there is no XML skeleton in `<gen>/processes`
+  (`load_generic_jsons`; only the objects with a matches file are read).
+- New `resources.list_locations()` (location codes for "Market Shares") and
+  `resources.templates_dir()`.
+- Writing the outputs of a process (XML, JSON / PDF report) no longer aborts the run on
+  error; the failure is recorded as a diagnostic.
+
+- Add a "from-url" mode that fetches the source EPDs from an HTTP file server
+  (`{base_url}/xml/<uuid>.xml`, reference flows from `{base_url}/flows/<uuid>.xml`)
+  instead of local folders. The conventional local-folder mode is unchanged.
+  - CLI: `materia-epd --from-url spec.json [--base-url URL] -o <output_dir>`; the base
+    URL can also come from the spec (`base_url`) or `$MATERIA_EPD_BASE_URL`.
+  - Python API: `materia_epd.pipeline.run.run_materia_from_url(spec, output_path=None)`
+    returns a JSON-serializable summary per generic process (status, selected / missing /
+    rejected EPDs, averaged properties and impacts, report, diagnostics, written files)
+    and writes `from_url_summary.json` when an output folder is given.
+  - The spec is a list of EPD UUIDs, a single process object or `{"processes": [...]}`;
+    each process takes `matches` (same format as `matches/<uuid>.json`) or `uuids` + `type`,
+    plus optional `uuid`, `name`, `location`, `hs_class`, `declared_unit`, and the skeleton
+    options `template` (source EPD UUID) or `template_url` / `template_flow_url`.
+  - Without a template URL the generic process skeleton is built from a source EPD (default:
+    first fetched match): new process UUID, renamed reference flow, 1 declared unit.
+- New `materia_epd.io.remote.UrlSource`: cached, concurrent download of process XMLs with
+  their reference flows; unreachable EPDs are reported as missing with the HTTP error.
+- `IlcdProcess` accepts an optional `flow_loader` to resolve its reference flow without a
+  local `flows` folder; new helper `reference_flow_uuid(root)`.
+- `IlcdProcess.get_hs_class` no longer fails on datasets without an HS classification
+  (`hs_class = None`), and `get_market` returns `{}` without location or HS class instead
+  of generating a Comtrade market.
+- `run_materia` was split into reusable steps (`expand_process_uuids`,
+  `collect_required_epd_uuids`, `execute_processes`) and now returns the pipeline context of
+  each process. An exception in one process is recorded as an error diagnostic instead of
+  stopping the run, and no files are written when no output folder is given.
+- `EpdPipelineContext.outputs` lists the files written for the process.
+
 Version 0.8.0 (2026-09-08)
 --------------------------
 
